@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- MPD218 USB MIDI Device -->
+    <usb-device vendor-id="2536" product-id="37" />
+</resources>
