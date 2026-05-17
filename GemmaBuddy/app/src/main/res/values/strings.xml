@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GemmaBuddy</string>
+    <string name="pref_interval_title">画面監視の間隔</string>
+    <string name="pref_interval_summary">Gemma4が画面を確認する頻度</string>
+</resources>

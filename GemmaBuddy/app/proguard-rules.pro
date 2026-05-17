@@ -1,0 +1,3 @@
+-keep class com.google.mediapipe.** { *; }
+-keep class com.example.gemmabuddy.** { *; }
+-dontwarn com.google.mediapipe.**

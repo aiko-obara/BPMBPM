@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ListPreference
+        android:key="interval_choice"
+        android:title="@string/pref_interval_title"
+        android:summary="@string/pref_interval_summary"
+        android:entries="@array/interval_labels"
+        android:entryValues="@array/interval_values"
+        android:defaultValue="300000"
+        app:useSimpleSummaryProvider="true" />
+
+</PreferenceScreen>

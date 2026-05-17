@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GemmaBuddy"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="8bitキャラクター × Gemma4 画面監視"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="32dp" />
+
+        <!-- 権限ステータス -->
+        <TextView
+            android:id="@+id/tv_overlay_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✗ オーバーレイ権限: 未付与"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btn_overlay_permission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="オーバーレイ権限を設定する"
+            android:layout_marginBottom="24dp" />
+
+        <!-- モデル選択 -->
+        <TextView
+            android:id="@+id/tv_model_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✗ モデル: 未選択"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btn_select_model"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Gemma4モデル(.task)を選択"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="※ モデルファイルはHugging Face等から.task形式でダウンロードし、端末ストレージに保存してください。"
+            android:textSize="12sp"
+            android:textColor="#888888"
+            android:layout_marginBottom="32dp" />
+
+        <!-- 起動 / 停止 -->
+        <Button
+            android:id="@+id/btn_start"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="キャラクターを起動"
+            android:enabled="false"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btn_stop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="キャラクターを停止"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginBottom="24dp" />
+
+        <Button
+            android:id="@+id/btn_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="設定（監視間隔など）"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+    </LinearLayout>
+</ScrollView>
