@@ -31,6 +31,7 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    assetPacks += setOf(":gemmamodel")
     // MediaPipeのネイティブライブラリ用
     packaging {
         jniLibs {
@@ -49,4 +50,5 @@ dependencies {
     implementation(libs.mediapipe.tasks.genai)
     implementation(libs.gif.drawable)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.play.asset.delivery)
 }

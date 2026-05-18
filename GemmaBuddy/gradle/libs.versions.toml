@@ -10,6 +10,7 @@ preference = "1.2.1"
 mediapipeTasksGenai = "0.10.22"
 gifDrawable = "1.2.29"
 coroutines = "1.9.0"
+playAssetDelivery = "2.2.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -21,7 +22,9 @@ preference-ktx = { group = "androidx.preference", name = "preference-ktx", versi
 mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeTasksGenai" }
 gif-drawable = { group = "pl.droidsonroids.gif", name = "android-gif-drawable", version.ref = "gifDrawable" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+play-asset-delivery = { group = "com.google.android.play", name = "asset-delivery-ktx", version.ref = "playAssetDelivery" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+android-asset-pack = { id = "com.android.asset-pack", version.ref = "agp" }

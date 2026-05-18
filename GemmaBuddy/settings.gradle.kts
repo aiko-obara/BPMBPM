@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "GemmaBuddy"
 include(":app")
+include(":gemmamodel")
