@@ -52,6 +52,14 @@
             android:layout_marginBottom="8dp" />
 
         <Button
+            android:id="@+id/btn_copy_model"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="内部ストレージにコピー（約2.4GB）"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp" />
+
+        <Button
             android:id="@+id/btn_download_model"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

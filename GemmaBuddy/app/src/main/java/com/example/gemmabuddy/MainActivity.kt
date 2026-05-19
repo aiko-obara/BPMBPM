@@ -52,6 +52,10 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        binding.btnCopyModel.setOnClickListener {
+            startModelCopy()
+        }
+
         binding.btnDownloadModel.setOnClickListener {
             startModelDownload()
         }
@@ -62,7 +66,7 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             if (!modelDownloadManager.isModelAvailable()) {
-                Toast.makeText(this, "モデルをダウンロードしてください", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "モデルをコピーまたはダウンロードしてください", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             requestScreenCapture()
@@ -77,6 +81,36 @@ class MainActivity : AppCompatActivity() {
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+    }
+
+    private fun startModelCopy() {
+        binding.btnCopyModel.isEnabled = false
+        binding.btnDownloadModel.isEnabled = false
+        binding.downloadProgress.visibility = View.VISIBLE
+        binding.tvModelStatus.text = "内部ストレージにコピー中..."
+
+        modelDownloadManager.copyModelToInternalStorage(
+            onProgress = { progress ->
+                runOnUiThread {
+                    binding.downloadProgress.progress = (progress * 100).toInt()
+                    binding.tvModelStatus.text = "コピー中... ${(progress * 100).toInt()}%"
+                }
+            },
+            onSuccess = {
+                runOnUiThread {
+                    binding.downloadProgress.visibility = View.GONE
+                    Toast.makeText(this, "コピー完了！モデルを使用できます", Toast.LENGTH_SHORT).show()
+                    updateUI()
+                }
+            },
+            onFailure = { msg ->
+                runOnUiThread {
+                    binding.downloadProgress.visibility = View.GONE
+                    Toast.makeText(this, "コピー失敗: $msg", Toast.LENGTH_LONG).show()
+                    updateUI()
+                }
+            }
+        )
     }
 
     private fun startModelDownload() {
@@ -127,24 +161,33 @@ class MainActivity : AppCompatActivity() {
     private fun updateUI() {
         val hasOverlay = Settings.canDrawOverlays(this)
         val source = modelDownloadManager.getModelSource()
-        val hasModel = source != ModelDownloadManager.ModelSource.NONE
+        val hasModel = source == ModelDownloadManager.ModelSource.INTERNAL ||
+                source == ModelDownloadManager.ModelSource.PLAY_ASSET_DELIVERY
 
         binding.btnOverlayPermission.isEnabled = !hasOverlay
         binding.tvOverlayStatus.text =
             if (hasOverlay) "✓ オーバーレイ権限: 付与済み" else "✗ オーバーレイ権限: 未付与（タップして設定へ）"
 
         binding.tvModelStatus.text = when (source) {
-            ModelDownloadManager.ModelSource.AI_EDGE_GALLERY ->
-                "✓ Gemma4モデル: AI Edge Galleryから検出"
+            ModelDownloadManager.ModelSource.INTERNAL ->
+                "✓ Gemma4モデル: 準備完了（内部ストレージ）"
+            ModelDownloadManager.ModelSource.EXTERNAL_NEEDS_COPY ->
+                "⚠ Gemma4モデル: 外部ストレージに検出（コピーが必要）"
             ModelDownloadManager.ModelSource.PLAY_ASSET_DELIVERY ->
                 "✓ Gemma4モデル: ダウンロード済み"
             ModelDownloadManager.ModelSource.NONE ->
                 "✗ Gemma4モデル: 未検出"
         }
 
-        binding.btnDownloadModel.isEnabled = !hasModel
+        binding.btnCopyModel.visibility =
+            if (source == ModelDownloadManager.ModelSource.EXTERNAL_NEEDS_COPY) View.VISIBLE else View.GONE
+        binding.btnCopyModel.isEnabled = true
+
+        binding.btnDownloadModel.isEnabled =
+            source == ModelDownloadManager.ModelSource.NONE
         binding.btnDownloadModel.text = when (source) {
-            ModelDownloadManager.ModelSource.AI_EDGE_GALLERY -> "AI Edge Galleryを使用中"
+            ModelDownloadManager.ModelSource.INTERNAL -> "内部ストレージ使用中"
+            ModelDownloadManager.ModelSource.EXTERNAL_NEEDS_COPY -> "外部に検出済み（上のボタンでコピー）"
             ModelDownloadManager.ModelSource.PLAY_ASSET_DELIVERY -> "ダウンロード済み"
             ModelDownloadManager.ModelSource.NONE -> "Gemma4をダウンロード（Play）"
         }

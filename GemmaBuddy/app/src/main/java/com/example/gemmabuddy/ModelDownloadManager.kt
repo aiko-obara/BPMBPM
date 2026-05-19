@@ -12,22 +12,74 @@ class ModelDownloadManager(private val context: Context) {
     private val assetPackManager: AssetPackManager =
         AssetPackManagerFactory.getInstance(context)
 
-    /**
-     * モデルファイルのパスを返す。優先順位:
-     * 1. AI Edge Galleryのキャッシュ（端末に既存）
-     * 2. Play Asset Deliveryでダウンロード済み
-     * 未検出の場合はnull
-     */
-    fun getModelPath(): String? = findAiEdgeGalleryModel() ?: getPadModelPath()
+    /** 内部ストレージ優先でモデルパスを返す（native open()が確実） */
+    fun getModelPath(): String? = findInternalModel() ?: getPadModelPath()
 
-    /** モデルがローカルに存在するか */
     fun isModelAvailable(): Boolean = getModelPath() != null
 
-    /** AI Edge Galleryのモデルソースを返す（UI表示用） */
     fun getModelSource(): ModelSource {
-        if (findAiEdgeGalleryModel() != null) return ModelSource.AI_EDGE_GALLERY
+        if (findInternalModel() != null) return ModelSource.INTERNAL
+        if (findExternalModel() != null) return ModelSource.EXTERNAL_NEEDS_COPY
         if (getPadModelPath() != null) return ModelSource.PLAY_ASSET_DELIVERY
         return ModelSource.NONE
+    }
+
+    /** 内部ストレージ（/data/data/）のモデルを返す */
+    fun findInternalModel(): String? {
+        return context.filesDir.walkTopDown()
+            .filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
+            .firstOrNull()?.absolutePath
+    }
+
+    /** 外部ストレージのモデルを返す（native open()が失敗する場合あり） */
+    fun findExternalModel(): String? {
+        context.getExternalFilesDir(null)?.walkTopDown()
+            ?.filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
+            ?.firstOrNull()?.let { return it.absolutePath }
+        File("/sdcard/Download").takeIf { it.exists() }
+            ?.walkTopDown()
+            ?.filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
+            ?.firstOrNull()?.let { return it.absolutePath }
+        return null
+    }
+
+    /** 外部→内部ストレージへコピー（Javaストリームなので確実に動く） */
+    fun copyModelToInternalStorage(
+        onProgress: (Float) -> Unit,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        val externalPath = findExternalModel() ?: run {
+            onFailure("コピー元のモデルが見つかりません")
+            return
+        }
+        val source = File(externalPath)
+        val dest = File(context.filesDir, source.name)
+        if (dest.exists() && dest.length() == source.length()) {
+            onSuccess()
+            return
+        }
+        Thread {
+            try {
+                val total = source.length()
+                var copied = 0L
+                source.inputStream().use { input ->
+                    dest.outputStream().use { output ->
+                        val buffer = ByteArray(4 * 1024 * 1024)
+                        var read: Int
+                        while (input.read(buffer).also { read = it } != -1) {
+                            output.write(buffer, 0, read)
+                            copied += read
+                            if (total > 0) onProgress(copied.toFloat() / total)
+                        }
+                    }
+                }
+                onSuccess()
+            } catch (e: Exception) {
+                dest.delete()
+                onFailure(e.message ?: "コピー失敗")
+            }
+        }.start()
     }
 
     /** Play Storeからモデルをオンデマンドダウンロードする */
@@ -51,29 +103,6 @@ class ModelDownloadManager(private val context: Context) {
             .addOnFailureListener { e ->
                 onFailure(e.localizedMessage ?: "不明なエラー")
             }
-    }
-
-    private fun findAiEdgeGalleryModel(): String? {
-        // 1. 内部ストレージ（native open()が最も安定する）
-        context.filesDir.walkTopDown()
-            .filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
-            .firstOrNull()
-            ?.let { return it.absolutePath }
-
-        // 2. アプリ自身のexternalFilesDir（adbでコピー済みモデルを探す）
-        context.getExternalFilesDir(null)?.walkTopDown()
-            ?.filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
-            ?.firstOrNull()
-            ?.let { return it.absolutePath }
-
-        // 3. Downloadフォルダ
-        File("/sdcard/Download").takeIf { it.exists() }
-            ?.walkTopDown()
-            ?.filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
-            ?.firstOrNull()
-            ?.let { return it.absolutePath }
-
-        return null
     }
 
     private fun getPadModelPath(): String? {
@@ -115,7 +144,7 @@ class ModelDownloadManager(private val context: Context) {
         assetPackManager.registerListener(listener)
     }
 
-    enum class ModelSource { NONE, AI_EDGE_GALLERY, PLAY_ASSET_DELIVERY }
+    enum class ModelSource { NONE, INTERNAL, EXTERNAL_NEEDS_COPY, PLAY_ASSET_DELIVERY }
 
     companion object {
         const val PACK_NAME = "gemmamodel"
