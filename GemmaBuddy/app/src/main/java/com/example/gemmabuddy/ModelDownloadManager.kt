@@ -54,13 +54,19 @@ class ModelDownloadManager(private val context: Context) {
     }
 
     private fun findAiEdgeGalleryModel(): String? {
-        // 1. アプリ自身のexternalFilesDir（adbでコピー済みモデルを探す）
+        // 1. 内部ストレージ（native open()が最も安定する）
+        context.filesDir.walkTopDown()
+            .filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
+            .firstOrNull()
+            ?.let { return it.absolutePath }
+
+        // 2. アプリ自身のexternalFilesDir（adbでコピー済みモデルを探す）
         context.getExternalFilesDir(null)?.walkTopDown()
             ?.filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
             ?.firstOrNull()
             ?.let { return it.absolutePath }
 
-        // 2. Downloadフォルダ
+        // 3. Downloadフォルダ
         File("/sdcard/Download").takeIf { it.exists() }
             ?.walkTopDown()
             ?.filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
