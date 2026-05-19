@@ -126,17 +126,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI() {
         val hasOverlay = Settings.canDrawOverlays(this)
-        val hasModel = modelDownloadManager.isModelAvailable()
+        val source = modelDownloadManager.getModelSource()
+        val hasModel = source != ModelDownloadManager.ModelSource.NONE
 
         binding.btnOverlayPermission.isEnabled = !hasOverlay
         binding.tvOverlayStatus.text =
             if (hasOverlay) "✓ オーバーレイ権限: 付与済み" else "✗ オーバーレイ権限: 未付与（タップして設定へ）"
 
-        binding.tvModelStatus.text =
-            if (hasModel) "✓ Gemma4モデル: ダウンロード済み" else "✗ Gemma4モデル: 未ダウンロード"
+        binding.tvModelStatus.text = when (source) {
+            ModelDownloadManager.ModelSource.AI_EDGE_GALLERY ->
+                "✓ Gemma4モデル: AI Edge Galleryから検出"
+            ModelDownloadManager.ModelSource.PLAY_ASSET_DELIVERY ->
+                "✓ Gemma4モデル: ダウンロード済み"
+            ModelDownloadManager.ModelSource.NONE ->
+                "✗ Gemma4モデル: 未検出"
+        }
 
         binding.btnDownloadModel.isEnabled = !hasModel
-        binding.btnDownloadModel.text = if (hasModel) "ダウンロード済み" else "Gemma4をダウンロード（Play）"
+        binding.btnDownloadModel.text = when (source) {
+            ModelDownloadManager.ModelSource.AI_EDGE_GALLERY -> "AI Edge Galleryを使用中"
+            ModelDownloadManager.ModelSource.PLAY_ASSET_DELIVERY -> "ダウンロード済み"
+            ModelDownloadManager.ModelSource.NONE -> "Gemma4をダウンロード（Play）"
+        }
         binding.downloadProgress.visibility = View.GONE
         binding.btnStart.isEnabled = hasOverlay && hasModel
     }
