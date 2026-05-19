@@ -7,6 +7,8 @@ import android.hardware.display.VirtualDisplay
 import android.media.Image
 import android.media.ImageReader
 import android.media.projection.MediaProjection
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 
 class ScreenCaptureManager(
@@ -19,6 +21,13 @@ class ScreenCaptureManager(
     private var virtualDisplay: VirtualDisplay? = null
 
     fun start() {
+        // Android 14+: createVirtualDisplay()前にコールバック登録が必須
+        mediaProjection.registerCallback(object : MediaProjection.Callback() {
+            override fun onStop() {
+                stop()
+            }
+        }, Handler(Looper.getMainLooper()))
+
         imageReader = ImageReader.newInstance(screenWidth, screenHeight, PixelFormat.RGBA_8888, 2)
         virtualDisplay = mediaProjection.createVirtualDisplay(
             "GemmaBuddyCapture",

@@ -6,9 +6,11 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -40,7 +42,9 @@ class OverlayService : LifecycleService() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         gemmaManager = GemmaManager(this)
-        startForegroundNotification()
+        // Android 14+はmediaProjection型でstartForeground()する前に
+        // 画面キャプチャ権限が必要なため、起動時はspecialUseのみで開始
+        startForegroundCompat()
         setupOverlay()
     }
 
@@ -63,6 +67,14 @@ class OverlayService : LifecycleService() {
     private fun startCapture(projectionData: Intent, modelPath: String) {
         val projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         val projection = projectionManager.getMediaProjection(RESULT_OK_CODE, projectionData)
+
+        // Android 14+: getMediaProjection()後にmediaProjection型でstartForegroundを更新
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                NOTIFICATION_ID, buildNotification(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+            )
+        }
 
         val metrics = DisplayMetrics()
         @Suppress("DEPRECATION")
@@ -145,27 +157,40 @@ class OverlayService : LifecycleService() {
         Log.i(TAG, "オーバーレイ表示")
     }
 
-    private fun startForegroundNotification() {
+    private fun buildNotification(): Notification {
+        val channelId = "gemmabuddy_channel"
+        val stopIntent = PendingIntent.getService(
+            this, 0,
+            Intent(this, OverlayService::class.java).apply { action = ACTION_STOP },
+            PendingIntent.FLAG_IMMUTABLE
+        )
+        return Notification.Builder(this, channelId)
+            .setContentTitle("GemmaBuddy 稼働中")
+            .setContentText("画面を監視しています")
+            .setSmallIcon(android.R.drawable.ic_menu_camera)
+            .addAction(Notification.Action.Builder(null, "停止", stopIntent).build())
+            .build()
+    }
+
+    private fun startForegroundCompat() {
         val channelId = "gemmabuddy_channel"
         val channel = NotificationChannel(
             channelId, "GemmaBuddy", NotificationManager.IMPORTANCE_LOW
         ).apply { description = "キャラクター常駐サービス" }
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
 
-        val stopIntent = PendingIntent.getService(
-            this, 0,
-            Intent(this, OverlayService::class.java).apply { action = ACTION_STOP },
-            PendingIntent.FLAG_IMMUTABLE
-        )
+        val notification = buildNotification()
 
-        val notification = Notification.Builder(this, channelId)
-            .setContentTitle("GemmaBuddy 稼働中")
-            .setContentText("画面を監視しています")
-            .setSmallIcon(android.R.drawable.ic_menu_camera)
-            .addAction(Notification.Action.Builder(null, "停止", stopIntent).build())
-            .build()
-
-        startForeground(NOTIFICATION_ID, notification)
+        when {
+            // Android 14+: 起動時はspecialUse型のみ（mediaProjection権限はまだない）
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ->
+                startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            // Android 10-13: mediaProjection型で開始可能
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ->
+                startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
+            else ->
+                startForeground(NOTIFICATION_ID, notification)
+        }
     }
 
     override fun onDestroy() {
