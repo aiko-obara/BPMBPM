@@ -32,7 +32,6 @@ android {
         viewBinding = true
     }
     assetPacks += setOf(":gemmamodel")
-    // MediaPipeのネイティブライブラリ用
     packaging {
         jniLibs {
             pickFirsts += setOf("**/*.so")
@@ -47,7 +46,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.lifecycle.service)
     implementation(libs.preference.ktx)
-    implementation(libs.mediapipe.tasks.genai)
+    implementation(libs.litert.lm.android)
     implementation(libs.gif.drawable)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.play.asset.delivery)
