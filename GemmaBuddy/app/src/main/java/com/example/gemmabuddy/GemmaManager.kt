@@ -1,13 +1,10 @@
 package com.example.gemmabuddy
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.util.Base64
 import android.util.Log
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
 
 class GemmaManager(private val context: Context) {
 
@@ -17,7 +14,7 @@ class GemmaManager(private val context: Context) {
         try {
             val options = LlmInference.LlmInferenceOptions.builder()
                 .setModelPath(modelPath)
-                .setMaxTokens(512)
+                .setMaxTokens(256)
                 .build()
             llmInference = LlmInference.createFromOptions(context, options)
             Log.i(TAG, "Gemma4モデルロード完了: $modelPath")
@@ -28,37 +25,22 @@ class GemmaManager(private val context: Context) {
         }
     }
 
-    suspend fun analyzeScreen(screenshot: Bitmap): String = withContext(Dispatchers.Default) {
+    suspend fun generateComment(): String = withContext(Dispatchers.IO) {
         val inference = llmInference ?: return@withContext "モデルが読み込まれていません。"
         try {
-            val imageBase64 = bitmapToBase64(screenshot)
-            val prompt = buildPrompt(imageBase64)
-            withContext(Dispatchers.IO) {
-                inference.generateResponse(prompt)
-            }
+            val prompt = buildPrompt()
+            Log.i(TAG, "推論開始")
+            val result = inference.generateResponse(prompt)
+            Log.i(TAG, "推論完了: $result")
+            result.trim().ifEmpty { "やあ！なんか用？" }
         } catch (e: Exception) {
             Log.e(TAG, "推論エラー", e)
             "画面を見ているよ〜！"
         }
     }
 
-    private fun buildPrompt(imageBase64: String): String {
-        return """あなたは画面上に住む8bitキャラクターです。
-ユーザーのスマートフォン画面を見ています。
-画面の様子を元に、短くて愛嬌のあるコメントを1〜2文で日本語で答えてください。
-ユーモラスで親しみやすい口調で。絵文字は使わず、シンプルに。
-
-[画面データ(base64)]
-${imageBase64.take(2000)}
-
-キャラクターのコメント:"""
-    }
-
-    private fun bitmapToBase64(bitmap: Bitmap): String {
-        val scaled = Bitmap.createScaledBitmap(bitmap, 512, 512 * bitmap.height / bitmap.width, true)
-        val outputStream = ByteArrayOutputStream()
-        scaled.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
-        return Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
+    private fun buildPrompt(): String {
+        return "<start_of_turn>user\nあなたは画面に住む小さな8bitキャラクターです。ユーザーに一言、短く愛嬌のある日本語コメントをしてください。1文だけ。<end_of_turn>\n<start_of_turn>model\n"
     }
 
     fun isReady() = llmInference != null

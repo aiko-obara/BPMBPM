@@ -111,13 +111,11 @@ class OverlayService : LifecycleService() {
     }
 
     private fun performMonitorCycle() {
-        val captureManager = screenCaptureManager ?: return
         val gemma = gemmaManager ?: return
-
+        Log.i(TAG, "コメント生成開始")
         lifecycleScope.launch {
-            val bitmap = captureManager.captureScreen() ?: return@launch
-            val comment = gemma.analyzeScreen(bitmap)
-            bitmap.recycle()
+            val comment = gemma.generateComment()
+            Log.i(TAG, "コメント生成完了: $comment")
             handler.post {
                 speechBubbleView?.showText(comment)
             }
