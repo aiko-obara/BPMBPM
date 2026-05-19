@@ -7,7 +7,7 @@ import com.google.android.play.core.assetpacks.AssetPackStateUpdateListener
 import com.google.android.play.core.assetpacks.model.AssetPackStatus
 import java.io.File
 
-class ModelDownloadManager(context: Context) {
+class ModelDownloadManager(private val context: Context) {
 
     private val assetPackManager: AssetPackManager =
         AssetPackManagerFactory.getInstance(context)
@@ -54,13 +54,20 @@ class ModelDownloadManager(context: Context) {
     }
 
     private fun findAiEdgeGalleryModel(): String? {
-        val baseDir = File(AI_EDGE_GALLERY_BASE)
-        if (!baseDir.exists()) return null
-        // サブディレクトリを再帰的に検索して .litertlm または .task を探す
-        return baseDir.walkTopDown()
-            .filter { it.isFile && (it.name.endsWith(".litertlm") || it.name.endsWith(".task")) }
-            .firstOrNull()
-            ?.absolutePath
+        // 1. アプリ自身のexternalFilesDir（adbでコピー済みモデルを探す）
+        context.getExternalFilesDir(null)?.walkTopDown()
+            ?.filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
+            ?.firstOrNull()
+            ?.let { return it.absolutePath }
+
+        // 2. Downloadフォルダ
+        File("/sdcard/Download").takeIf { it.exists() }
+            ?.walkTopDown()
+            ?.filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
+            ?.firstOrNull()
+            ?.let { return it.absolutePath }
+
+        return null
     }
 
     private fun getPadModelPath(): String? {
@@ -107,7 +114,6 @@ class ModelDownloadManager(context: Context) {
     companion object {
         const val PACK_NAME = "gemmamodel"
         const val MODEL_FILE = "model/gemma4.task"
-        private const val AI_EDGE_GALLERY_BASE =
-            "/sdcard/Android/data/com.google.ai.edge.gallery/files"
+        private val MODEL_EXTENSIONS = listOf(".litertlm", ".task", ".bin")
     }
 }
