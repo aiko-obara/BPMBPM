@@ -66,15 +66,16 @@ class OverlayService : LifecycleService() {
 
     private fun startCapture(projectionData: Intent, modelPath: String) {
         val projectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        val projection = projectionManager.getMediaProjection(RESULT_OK_CODE, projectionData)
 
-        // Android 14+: getMediaProjection()後にmediaProjection型でstartForegroundを更新
+        // Android 14+: getMediaProjection()を呼ぶ前にMEDIA_PROJECTION型でstartForegroundが必要
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
                 NOTIFICATION_ID, buildNotification(),
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
             )
         }
+
+        val projection = projectionManager.getMediaProjection(RESULT_OK_CODE, projectionData)
 
         val metrics = DisplayMetrics()
         @Suppress("DEPRECATION")
