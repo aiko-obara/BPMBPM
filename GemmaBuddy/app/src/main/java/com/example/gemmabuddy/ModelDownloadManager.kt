@@ -31,7 +31,7 @@ class ModelDownloadManager(context: Context) {
     ) {
         assetPackManager.fetch(listOf(PACK_NAME))
             .addOnSuccessListener { states ->
-                val state = states[PACK_NAME] ?: run {
+                val state = states.packStates()[PACK_NAME] ?: run {
                     onFailure("アセットパックが見つかりません")
                     return@addOnSuccessListener
                 }
@@ -73,7 +73,6 @@ class ModelDownloadManager(context: Context) {
                         assetPackManager.unregisterListener(this)
                         onFailure("ダウンロードがキャンセルされました")
                     }
-                    AssetPackStatus.WAITING_WIFI -> onProgress(0f)
                     else -> {}
                 }
             }

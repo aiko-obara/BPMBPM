@@ -18,7 +18,6 @@ class GemmaManager(private val context: Context) {
             val options = LlmInference.LlmInferenceOptions.builder()
                 .setModelPath(modelPath)
                 .setMaxTokens(512)
-                .setTopK(40)
                 .setTemperature(0.8f)
                 .setRandomSeed(42)
                 .build()

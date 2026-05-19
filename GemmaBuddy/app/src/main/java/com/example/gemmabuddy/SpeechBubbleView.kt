@@ -1,5 +1,7 @@
 package com.example.gemmabuddy
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Canvas
@@ -52,7 +54,11 @@ class SpeechBubbleView @JvmOverloads constructor(
         postDelayed({
             ObjectAnimator.ofFloat(this, "alpha", 1f, 0f).apply {
                 duration = 500
-                withEndAction { visibility = GONE }
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        visibility = GONE
+                    }
+                })
                 start()
             }
         }, 8000)
