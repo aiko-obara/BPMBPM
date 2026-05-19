@@ -85,13 +85,15 @@ class OverlayService : LifecycleService() {
             projection, metrics.widthPixels, metrics.heightPixels, metrics.densityDpi
         ).also { it.start() }
 
+        Log.i(TAG, "モデル初期化開始: $modelPath")
+        speechBubbleView?.showText("モデル読み込み中...少し待ってね")
         lifecycleScope.launch {
             val ok = gemmaManager!!.initialize(modelPath)
             if (ok) {
-                speechBubbleView?.showText("モデル読み込み完了！画面を見ているよ〜")
+                handler.post { speechBubbleView?.showText("準備完了！タップしてね♪") }
                 scheduleMonitoring()
             } else {
-                speechBubbleView?.showText("モデルの読み込みに失敗しました...")
+                handler.post { speechBubbleView?.showText("モデルの読み込みに失敗しました...") }
             }
         }
     }
@@ -153,8 +155,12 @@ class OverlayService : LifecycleService() {
         }
 
         characterView?.onTapListener = {
-            speechBubbleView?.showText("考え中...")
-            performMonitorCycle()
+            if (gemmaManager?.isReady() == true) {
+                speechBubbleView?.showText("考え中...")
+                performMonitorCycle()
+            } else {
+                speechBubbleView?.showText("まだ読み込み中...もう少し待ってね！")
+            }
         }
 
         windowManager.addView(overlayRoot, params)
