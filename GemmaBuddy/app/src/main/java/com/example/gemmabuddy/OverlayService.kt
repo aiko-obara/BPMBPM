@@ -154,6 +154,11 @@ class OverlayService : LifecycleService() {
             }
         }
 
+        characterView?.onTapListener = {
+            speechBubbleView?.showText("考え中...")
+            performMonitorCycle()
+        }
+
         windowManager.addView(overlayRoot, params)
         Log.i(TAG, "オーバーレイ表示")
     }

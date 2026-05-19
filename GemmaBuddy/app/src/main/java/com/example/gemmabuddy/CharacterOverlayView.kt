@@ -33,6 +33,7 @@ class CharacterOverlayView @JvmOverloads constructor(
     private val outlineColor = Color.parseColor("#1B5E20")
 
     var onMoveListener: ((dx: Float, dy: Float) -> Unit)? = null
+    var onTapListener: (() -> Unit)? = null
 
     private var touchStartX = 0f
     private var touchStartY = 0f
@@ -103,6 +104,7 @@ class CharacterOverlayView @JvmOverloads constructor(
                 return true
             }
             MotionEvent.ACTION_UP -> {
+                if (!isDragging) onTapListener?.invoke()
                 return true
             }
         }
