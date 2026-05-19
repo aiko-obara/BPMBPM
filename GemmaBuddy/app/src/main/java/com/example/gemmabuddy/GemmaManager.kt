@@ -18,8 +18,6 @@ class GemmaManager(private val context: Context) {
             val options = LlmInference.LlmInferenceOptions.builder()
                 .setModelPath(modelPath)
                 .setMaxTokens(512)
-                .setTemperature(0.8f)
-                .setRandomSeed(42)
                 .build()
             llmInference = LlmInference.createFromOptions(context, options)
             Log.i(TAG, "Gemma4モデルロード完了: $modelPath")
