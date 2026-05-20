@@ -2,6 +2,11 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <EditTextPreference
+        android:key="openai_api_key"
+        android:title="@string/pref_api_key_title"
+        android:summary="@string/pref_api_key_summary" />
+
     <ListPreference
         android:key="interval_choice"
         android:title="@string/pref_interval_title"

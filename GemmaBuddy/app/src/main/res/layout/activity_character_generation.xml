@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:fitsSystemWindows="true">
+
+    <Button
+        android:id="@+id/btn_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="← 戻る"
+        android:layout_margin="8dp"
+        style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="24dp"
+            android:paddingRight="24dp"
+            android:paddingBottom="32dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="テンプレートを選ぶ"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <RadioGroup
+                android:id="@+id/rg_template"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="20dp">
+
+                <RadioButton
+                    android:id="@+id/rb_human"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="人型"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/rb_animal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="動物" />
+
+                <RadioButton
+                    android:id="@+id/rb_robot"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="ロボット" />
+
+                <RadioButton
+                    android:id="@+id/rb_dragon"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="ドラゴン" />
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="キャラクターの説明（日本語OK）"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="例: ピンクの髪に青いドレスの女の子"
+                android:inputType="text"
+                android:singleLine="true"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="目・手・足は必ず明確に描画されます"
+                android:textSize="12sp"
+                android:textColor="#888888"
+                android:layout_marginBottom="24dp" />
+
+            <Button
+                android:id="@+id/btn_generate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="32×32 ピクセルキャラを生成する"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:id="@+id/layout_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp">
+
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tv_progress_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="生成中..."
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_preview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="生成されたキャラクター"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="12dp" />
+
+                <ImageView
+                    android:id="@+id/iv_generated_char"
+                    android:layout_width="192dp"
+                    android:layout_height="192dp"
+                    android:scaleType="fitCenter"
+                    android:background="#F0F0F0"
+                    android:contentDescription="生成されたキャラクター"
+                    android:layout_marginBottom="16dp" />
+
+                <Button
+                    android:id="@+id/btn_use_character"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="このキャラクターを使う"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btn_regenerate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="もう一度生成する"
+                    style="@style/Widget.MaterialComponents.Button.TextButton" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

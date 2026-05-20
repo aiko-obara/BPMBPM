@@ -3,4 +3,6 @@
     <string name="app_name">GemmaBuddy</string>
     <string name="pref_interval_title">画面監視の間隔</string>
     <string name="pref_interval_summary">Gemma4が画面を確認する頻度</string>
+    <string name="pref_api_key_title">OpenAI API キー</string>
+    <string name="pref_api_key_summary">キャラクター生成に使用します</string>
 </resources>

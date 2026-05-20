@@ -78,6 +78,10 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
+        binding.btnGenerateCharacter.setOnClickListener {
+            startActivity(Intent(this, CharacterGenerationActivity::class.java))
+        }
+
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }

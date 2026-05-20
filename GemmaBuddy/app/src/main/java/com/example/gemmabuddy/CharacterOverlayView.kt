@@ -1,15 +1,16 @@
 package com.example.gemmabuddy
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import android.view.WindowManager
 import pl.droidsonroids.gif.GifDrawable
-import pl.droidsonroids.gif.GifImageView
 import kotlin.math.abs
 
 class CharacterOverlayView @JvmOverloads constructor(
@@ -19,8 +20,21 @@ class CharacterOverlayView @JvmOverloads constructor(
 
     private val pixelPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var gifDrawable: GifDrawable? = null
+    private var customBitmap: Bitmap? = null
+    private var bobYOffset = 0f
+    private val bobOffsets = floatArrayOf(0f, -3f, 0f, 3f)
+    private var bobIndex = 0
+    private val bobHandler = Handler(Looper.getMainLooper())
+    private val bobRunnable = object : Runnable {
+        override fun run() {
+            bobIndex = (bobIndex + 1) % bobOffsets.size
+            bobYOffset = bobOffsets[bobIndex]
+            invalidate()
+            bobHandler.postDelayed(this, 250)
+        }
+    }
 
-    // 8bitキャラクターのピクセルマップ（デフォルト: シンプルな人型）
+    // デフォルト 8bit ピクセルキャラ
     private val pixelChar = arrayOf(
         intArrayOf(0, 1, 1, 0),
         intArrayOf(1, 1, 1, 1),
@@ -40,30 +54,53 @@ class CharacterOverlayView @JvmOverloads constructor(
     private var isDragging = false
 
     fun setGifDrawable(drawable: GifDrawable) {
+        bobHandler.removeCallbacks(bobRunnable)
+        customBitmap = null
         gifDrawable = drawable
         drawable.callback = this
         drawable.start()
         invalidate()
+        requestLayout()
+    }
+
+    fun setCustomBitmap(bitmap: Bitmap) {
+        gifDrawable?.stop()
+        gifDrawable = null
+        customBitmap = Bitmap.createScaledBitmap(bitmap, CUSTOM_CHAR_SIZE, CUSTOM_CHAR_SIZE, false)
+        bobHandler.removeCallbacks(bobRunnable)
+        bobHandler.post(bobRunnable)
+        invalidate()
+        requestLayout()
+    }
+
+    fun clearCustomBitmap() {
+        bobHandler.removeCallbacks(bobRunnable)
+        customBitmap = null
+        invalidate()
+        requestLayout()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val gif = gifDrawable
-        if (gif != null) {
-            setMeasuredDimension(gif.intrinsicWidth, gif.intrinsicHeight)
-        } else {
-            val w = (pixelChar[0].size * pixelSize).toInt()
-            val h = (pixelChar.size * pixelSize).toInt()
-            setMeasuredDimension(w, h)
+        when {
+            customBitmap != null -> setMeasuredDimension(CUSTOM_CHAR_SIZE, CUSTOM_CHAR_SIZE)
+            gifDrawable != null -> setMeasuredDimension(
+                gifDrawable!!.intrinsicWidth, gifDrawable!!.intrinsicHeight
+            )
+            else -> setMeasuredDimension(
+                (pixelChar[0].size * pixelSize).toInt(),
+                (pixelChar.size * pixelSize).toInt()
+            )
         }
     }
 
     override fun onDraw(canvas: Canvas) {
-        val gif = gifDrawable
-        if (gif != null) {
-            gif.setBounds(0, 0, width, height)
-            gif.draw(canvas)
-        } else {
-            drawPixelCharacter(canvas)
+        when {
+            customBitmap != null -> canvas.drawBitmap(customBitmap!!, 0f, bobYOffset, null)
+            gifDrawable != null -> {
+                gifDrawable!!.setBounds(0, 0, width, height)
+                gifDrawable!!.draw(canvas)
+            }
+            else -> drawPixelCharacter(canvas)
         }
     }
 
@@ -113,5 +150,14 @@ class CharacterOverlayView @JvmOverloads constructor(
 
     override fun verifyDrawable(who: android.graphics.drawable.Drawable): Boolean {
         return who == gifDrawable || super.verifyDrawable(who)
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        bobHandler.removeCallbacks(bobRunnable)
+    }
+
+    companion object {
+        const val CUSTOM_CHAR_SIZE = 128
     }
 }

@@ -9,6 +9,9 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Typeface
+import android.os.Handler
+import android.os.Looper
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -29,9 +32,20 @@ class SpeechBubbleView @JvmOverloads constructor(
         style = Paint.Style.STROKE
         strokeWidth = 4f
     }
+    private val misakiTypeface: Typeface by lazy {
+        try {
+            Typeface.createFromAsset(context.assets, "fonts/misaki_gothic.ttf")
+        } catch (e: Exception) {
+            Typeface.DEFAULT
+        }
+    }
     private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#222222")
-        textSize = 36f
+        textSize = 32f
+    }
+
+    init {
+        post { textPaint.typeface = misakiTypeface }
     }
 
     private var text = ""
@@ -39,19 +53,40 @@ class SpeechBubbleView @JvmOverloads constructor(
     private val tailHeight = 24f
     private val cornerRadius = 16f
 
-    fun showText(message: String) {
-        text = message
-        visibility = VISIBLE
-        alpha = 0f
-        ObjectAnimator.ofFloat(this, "alpha", 0f, 1f).apply {
-            duration = 300
-            start()
-        }
-        requestLayout()
-        invalidate()
+    // タイプライター用
+    private var fullText = ""
+    private var charIndex = 0
+    private val typewriterHandler = Handler(Looper.getMainLooper())
+    private val CHAR_DELAY_MS = 60L
 
-        // 8秒後に自動で非表示
-        postDelayed({
+    fun showText(message: String) {
+        typewriterHandler.removeCallbacksAndMessages(null)
+        fullText = message
+        charIndex = 0
+        text = ""
+        visibility = VISIBLE
+        alpha = 1f
+        scheduleNextChar()
+    }
+
+    private fun scheduleNextChar() {
+        typewriterHandler.postDelayed({
+            if (charIndex <= fullText.length) {
+                text = fullText.substring(0, charIndex)
+                charIndex++
+                requestLayout()
+                invalidate()
+                if (charIndex <= fullText.length) {
+                    scheduleNextChar()
+                } else {
+                    scheduleHide()
+                }
+            }
+        }, CHAR_DELAY_MS)
+    }
+
+    private fun scheduleHide() {
+        typewriterHandler.postDelayed({
             ObjectAnimator.ofFloat(this, "alpha", 1f, 0f).apply {
                 duration = 500
                 addListener(object : AnimatorListenerAdapter() {
@@ -62,6 +97,11 @@ class SpeechBubbleView @JvmOverloads constructor(
                 start()
             }
         }, 8000)
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        typewriterHandler.removeCallbacksAndMessages(null)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -78,12 +118,10 @@ class SpeechBubbleView @JvmOverloads constructor(
         val h = height.toFloat()
         val bubbleH = h - tailHeight
 
-        // 吹き出し本体（8bit風: 角丸四角）
         val rect = RectF(2f, 2f, w - 2f, bubbleH - 2f)
         canvas.drawRoundRect(rect, cornerRadius, cornerRadius, bgPaint)
         canvas.drawRoundRect(rect, cornerRadius, cornerRadius, borderPaint)
 
-        // 吹き出しのしっぽ（下向き三角）
         val tailX = w / 2f
         val path = Path().apply {
             moveTo(tailX - 16f, bubbleH - 2f)
@@ -94,7 +132,6 @@ class SpeechBubbleView @JvmOverloads constructor(
         canvas.drawPath(path, bgPaint)
         canvas.drawPath(path, borderPaint)
 
-        // テキスト描画
         canvas.save()
         canvas.translate(padding, padding)
         makeLayout(w - padding * 2).draw(canvas)

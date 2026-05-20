@@ -4,9 +4,12 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ServiceInfo
+import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
@@ -23,6 +26,7 @@ import android.widget.FrameLayout
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import java.io.File
 
 class OverlayService : LifecycleService() {
 
@@ -38,6 +42,12 @@ class OverlayService : LifecycleService() {
 
     private var charLayoutParams: WindowManager.LayoutParams? = null
 
+    private val characterReloadReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == ACTION_RELOAD_CHARACTER) loadCharacterAssets()
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
@@ -46,6 +56,21 @@ class OverlayService : LifecycleService() {
         // 画面キャプチャ権限が必要なため、起動時はspecialUseのみで開始
         startForegroundCompat()
         setupOverlay()
+        loadCharacterAssets()
+        registerReceiver(characterReloadReceiver, IntentFilter(ACTION_RELOAD_CHARACTER),
+            RECEIVER_NOT_EXPORTED)
+    }
+
+    private fun loadCharacterAssets() {
+        val file = File(filesDir, CUSTOM_CHAR_FILE)
+        if (!file.exists()) return
+        try {
+            val bitmap = BitmapFactory.decodeFile(file.absolutePath) ?: return
+            handler.post { characterView?.setCustomBitmap(bitmap) }
+            Log.i(TAG, "カスタムキャラクター読み込み完了")
+        } catch (e: Exception) {
+            Log.e(TAG, "カスタムキャラクター読み込み失敗", e)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -114,9 +139,13 @@ class OverlayService : LifecycleService() {
 
     private fun performMonitorCycle() {
         val gemma = gemmaManager ?: return
+        if (!gemma.isReady()) return
         Log.i(TAG, "コメント生成開始")
-        lifecycleScope.launch {
-            val comment = gemma.generateComment()
+        val capture = screenCaptureManager
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val screenshot = capture?.captureScreen()
+            Log.i(TAG, "スクリーンショット: ${if (screenshot != null) "${screenshot.width}x${screenshot.height}" else "null"}")
+            val comment = gemma.generateComment(screenshot)
             Log.i(TAG, "コメント生成完了: $comment")
             handler.post {
                 speechBubbleView?.showText(comment)
@@ -155,11 +184,15 @@ class OverlayService : LifecycleService() {
         }
 
         characterView?.onTapListener = {
-            if (gemmaManager?.isReady() == true) {
-                speechBubbleView?.showText("考え中...")
-                performMonitorCycle()
-            } else {
-                speechBubbleView?.showText("まだ読み込み中...もう少し待ってね！")
+            when {
+                gemmaManager?.isReady() != true ->
+                    speechBubbleView?.showText("まだ読み込み中...もう少し待ってね！")
+                gemmaManager?.isInferring() == true ->
+                    speechBubbleView?.showText(IDLE_COMMENTS.random())
+                else -> {
+                    speechBubbleView?.showText("考え中だよ〜！")
+                    performMonitorCycle()
+                }
             }
         }
 
@@ -205,6 +238,7 @@ class OverlayService : LifecycleService() {
 
     override fun onDestroy() {
         monitorRunnable?.let { handler.removeCallbacks(it) }
+        unregisterReceiver(characterReloadReceiver)
         screenCaptureManager?.stop()
         gemmaManager?.close()
         overlayRoot?.let { windowManager.removeView(it) }
@@ -228,5 +262,18 @@ class OverlayService : LifecycleService() {
         const val DEFAULT_INTERVAL_MS = 5 * 60 * 1000L
         private const val NOTIFICATION_ID = 1001
         private const val RESULT_OK_CODE = -1
+        const val ACTION_RELOAD_CHARACTER = "com.example.gemmabuddy.ACTION_RELOAD_CHARACTER"
+        const val CUSTOM_CHAR_FILE = "custom_character.png"
+
+        private val IDLE_COMMENTS = listOf(
+            "ちょっと待ってて〜！",
+            "今考え中だよ〜、急かさないで！",
+            "えへへ、もうちょっとだよ！",
+            "うーん...もうすぐだから！",
+            "やだやだ〜！せっかちだね〜",
+            "今忙しいんだよ〜！",
+            "きゃー！もう少しだけ待って！",
+            "いまいまいま考えてるとこ！"
+        )
     }
 }

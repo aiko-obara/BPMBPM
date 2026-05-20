@@ -3,6 +3,7 @@ package com.example.gemmabuddy
 import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
 import androidx.preference.PreferenceFragmentCompat
 
@@ -28,6 +29,14 @@ class SettingsActivity : AppCompatActivity() {
                 requireContext().getSharedPreferences(OverlayService.PREFS_NAME, Context.MODE_PRIVATE)
                     .edit().putLong(OverlayService.PREF_INTERVAL_MS, ms).apply()
                 true
+            }
+
+            findPreference<EditTextPreference>("openai_api_key")?.apply {
+                setOnBindEditTextListener { editText ->
+                    editText.inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                            android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                }
+                summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
             }
         }
     }

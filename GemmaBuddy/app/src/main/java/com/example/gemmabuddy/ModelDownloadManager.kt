@@ -107,7 +107,10 @@ class ModelDownloadManager(private val context: Context) {
 
     private fun getPadModelPath(): String? {
         val location = assetPackManager.getPackLocation(PACK_NAME) ?: return null
-        return "${location.assetsPath()}/$MODEL_FILE"
+        val assetsDir = java.io.File("${location.assetsPath()}/model")
+        return assetsDir.walkTopDown()
+            .filter { it.isFile && MODEL_EXTENSIONS.any { ext -> it.name.endsWith(ext) } }
+            .firstOrNull()?.absolutePath
     }
 
     private fun registerStateListener(
