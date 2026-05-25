@@ -3,167 +3,128 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF"
+    android:background="@color/nr_surface"
     android:fitsSystemWindows="true">
 
-    <Button
-        android:id="@+id/btn_back"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="← 戻る"
-        android:layout_margin="8dp"
-        style="@style/Widget.MaterialComponents.Button.TextButton" />
+    <include layout="@layout/include_top_app_bar" />
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="16dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingLeft="24dp"
-            android:paddingRight="24dp"
-            android:paddingBottom="32dp">
+            <!-- GET A BUDDY card -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_glass_card"
+                android:padding="20dp" android:elevation="2dp"
+                android:layout_marginBottom="24dp">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="テンプレートを選ぶ"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <RadioGroup
-                android:id="@+id/rg_template"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="20dp">
-
-                <RadioButton
-                    android:id="@+id/rb_human"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="人型"
-                    android:checked="true" />
-
-                <RadioButton
-                    android:id="@+id/rb_animal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="動物" />
-
-                <RadioButton
-                    android:id="@+id/rb_robot"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="ロボット" />
-
-                <RadioButton
-                    android:id="@+id/rb_dragon"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="ドラゴン" />
-            </RadioGroup>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="キャラクターの説明（日本語OK）"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/et_description"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="例: ピンクの髪に青いドレスの女の子"
-                android:inputType="text"
-                android:singleLine="true"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="目・手・足は必ず明確に描画されます"
-                android:textSize="12sp"
-                android:textColor="#888888"
-                android:layout_marginBottom="24dp" />
-
-            <Button
-                android:id="@+id/btn_generate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="32×32 ピクセルキャラを生成する"
-                android:layout_marginBottom="16dp" />
-
-            <LinearLayout
-                android:id="@+id/layout_progress"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:visibility="gone"
-                android:layout_marginBottom="16dp">
-
-                <ProgressBar
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp" />
-
-                <TextView
-                    android:id="@+id/tv_progress_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="生成中..."
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/layout_preview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="生成されたキャラクター"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="12dp" />
-
-                <ImageView
-                    android:id="@+id/iv_generated_char"
-                    android:layout_width="192dp"
-                    android:layout_height="192dp"
-                    android:scaleType="fitCenter"
-                    android:background="#F0F0F0"
-                    android:contentDescription="生成されたキャラクター"
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="GET A BUDDY"
+                    android:fontFamily="@font/space_grotesk" android:textSize="20sp"
+                    android:textStyle="bold" android:textColor="@color/nr_on_surface"
                     android:layout_marginBottom="16dp" />
 
-                <Button
-                    android:id="@+id/btn_use_character"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="このキャラクターを使う"
+                <!-- キャラ選択サムネイル -->
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="SELECT CHARACTER"
+                    android:fontFamily="@font/inter" android:textSize="10sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:textColor="@color/nr_on_surface_variant"
                     android:layout_marginBottom="8dp" />
 
-                <Button
-                    android:id="@+id/btn_regenerate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="もう一度生成する"
-                    style="@style/Widget.MaterialComponents.Button.TextButton" />
+                <HorizontalScrollView
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:layout_marginBottom="20dp">
+                    <LinearLayout android:id="@+id/ll_char_thumbs"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="4dp" />
+                </HorizontalScrollView>
+
+                <!-- キャラ画像エリア -->
+                <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+
+                    <!-- 画像なし時のメッセージ -->
+                    <TextView android:id="@+id/tv_empty_hint"
+                        android:layout_width="match_parent" android:layout_height="200dp"
+                        android:gravity="center"
+                        android:text="キャラクター画像がありません\nassets/characters/ に PNG を追加してください"
+                        android:fontFamily="@font/inter" android:textSize="13sp"
+                        android:textColor="@color/nr_on_surface_variant"
+                        android:visibility="gone" />
+
+                    <!-- キャラプレビュー -->
+                    <ImageView android:id="@+id/iv_char_preview"
+                        android:layout_width="200dp" android:layout_height="200dp"
+                        android:layout_gravity="center"
+                        android:scaleType="fitCenter"
+                        android:background="@drawable/bg_glass_card"
+                        android:contentDescription="Buddy character"
+                        android:padding="12dp"
+                        android:elevation="4dp"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <!-- キャラ名 -->
+                <TextView android:id="@+id/tv_char_name"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:fontFamily="@font/space_grotesk" android:textSize="16sp"
+                    android:textStyle="bold" android:letterSpacing="0.04"
+                    android:textColor="@color/nr_on_surface"
+                    android:layout_marginBottom="20dp"
+                    android:visibility="gone" />
+
+                <!-- REROLL -->
+                <Button android:id="@+id/btn_roll"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:text="⬡  REROLL"
+                    android:background="@drawable/bg_secondary_button"
+                    android:textColor="@color/nr_primary"
+                    android:fontFamily="@font/inter" android:textSize="13sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- DEPLOY -->
+                <Button android:id="@+id/btn_deploy"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:text="DEPLOY BUDDY"
+                    android:background="@drawable/bg_primary_button"
+                    android:textColor="@color/nr_on_primary"
+                    android:fontFamily="@font/inter" android:textSize="13sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:enabled="false" />
+
             </LinearLayout>
+
+            <!-- ACTIVE BUDDIES -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="ACTIVE BUDDIES"
+                android:fontFamily="@font/space_grotesk" android:textSize="20sp"
+                android:textStyle="bold" android:textColor="@color/nr_on_surface"
+                android:layout_marginBottom="4dp" />
+
+            <TextView android:id="@+id/tv_empty_buddies"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="No buddies yet. Deploy one above!"
+                android:fontFamily="@font/inter" android:textSize="13sp"
+                android:textColor="@color/nr_on_surface_variant"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone" />
+
+            <LinearLayout android:id="@+id/ll_buddy_list"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="8dp" />
 
         </LinearLayout>
     </ScrollView>
+
+    <FrameLayout android:id="@+id/bottom_nav_container"
+        android:layout_width="match_parent" android:layout_height="wrap_content">
+        <include layout="@layout/include_bottom_nav" />
+    </FrameLayout>
 </LinearLayout>

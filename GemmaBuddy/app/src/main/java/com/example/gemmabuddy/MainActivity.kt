@@ -2,20 +2,43 @@ package com.example.gemmabuddy
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.view.View
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.example.gemmabuddy.databinding.ActivityMainBinding
+import java.io.File
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
     private lateinit var modelDownloadManager: ModelDownloadManager
+
+    // Views
+    private lateinit var btnStart: Button
+    private lateinit var btnStop: Button
+    private lateinit var btnOverlayPermission: Button
+    private lateinit var btnDownloadModel: Button
+    private lateinit var btnCopyModel: Button
+    private lateinit var progressBar: ProgressBar
+    private lateinit var ivBuddyPreview: ImageView
+    private lateinit var tvStatusText: TextView
+    private lateinit var dotStatus: View
+    private lateinit var tvInteractions: TextView
+    private lateinit var tvUptime: TextView
+
+    private val startTime = System.currentTimeMillis()
+    private val uptimeHandler = Handler(Looper.getMainLooper())
 
     private val overlayPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -33,118 +56,114 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_main)
         modelDownloadManager = ModelDownloadManager(this)
+        bindViews()
         setupButtons()
+        setupBottomNav(NavTab.HOME)
         updateUI()
+        startUptimeCounter()
     }
 
     override fun onResume() {
         super.onResume()
         updateUI()
+        loadBuddyPreview()
+        loadActiveBuddyFromStore()
+    }
+
+    private fun loadActiveBuddyFromStore() {
+        val store = BuddyStore(this)
+        val active = store.getActive() ?: return
+        val file = store.getFile(active)
+        if (file.exists()) {
+            val bmp = android.graphics.BitmapFactory.decodeFile(file.absolutePath)
+            ivBuddyPreview.setImageBitmap(bmp)
+            // 名前フィールドがあれば更新
+            findViewById<TextView>(R.id.tv_buddy_name)?.text = active.name
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        uptimeHandler.removeCallbacksAndMessages(null)
+    }
+
+    private fun bindViews() {
+        btnStart = findViewById(R.id.btn_start)
+        btnStop = findViewById(R.id.btn_stop)
+        btnOverlayPermission = findViewById(R.id.btn_overlay_permission)
+        btnDownloadModel = findViewById(R.id.btn_download_model)
+        btnCopyModel = findViewById(R.id.btn_copy_model)
+        progressBar = findViewById(R.id.download_progress)
+        ivBuddyPreview = findViewById(R.id.iv_buddy_preview)
+        tvStatusText = findViewById(R.id.tv_status_text)
+        dotStatus = findViewById(R.id.dot_status)
+        tvInteractions = findViewById(R.id.tv_interactions)
+        tvUptime = findViewById(R.id.tv_uptime)
     }
 
     private fun setupButtons() {
-        binding.btnOverlayPermission.setOnClickListener {
+        btnOverlayPermission.setOnClickListener {
             overlayPermissionLauncher.launch(
                 Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
             )
         }
-
-        binding.btnCopyModel.setOnClickListener {
-            startModelCopy()
-        }
-
-        binding.btnDownloadModel.setOnClickListener {
-            startModelDownload()
-        }
-
-        binding.btnStart.setOnClickListener {
+        btnCopyModel.setOnClickListener { startModelCopy() }
+        btnDownloadModel.setOnClickListener { startModelDownload() }
+        btnStart.setOnClickListener {
             if (!Settings.canDrawOverlays(this)) {
-                Toast.makeText(this, "オーバーレイ権限が必要です", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "OVERLAY PERMISSION REQUIRED", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             if (!modelDownloadManager.isModelAvailable()) {
-                Toast.makeText(this, "モデルをコピーまたはダウンロードしてください", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "AI MODEL NOT FOUND", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             requestScreenCapture()
         }
-
-        binding.btnStop.setOnClickListener {
+        btnStop.setOnClickListener {
             startService(Intent(this, OverlayService::class.java).apply {
                 action = OverlayService.ACTION_STOP
             })
-        }
-
-        binding.btnGenerateCharacter.setOnClickListener {
-            startActivity(Intent(this, CharacterGenerationActivity::class.java))
-        }
-
-        binding.btnSettings.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
+            updateStatusChip(false)
         }
     }
 
-    private fun startModelCopy() {
-        binding.btnCopyModel.isEnabled = false
-        binding.btnDownloadModel.isEnabled = false
-        binding.downloadProgress.visibility = View.VISIBLE
-        binding.tvModelStatus.text = "内部ストレージにコピー中..."
-
-        modelDownloadManager.copyModelToInternalStorage(
-            onProgress = { progress ->
-                runOnUiThread {
-                    binding.downloadProgress.progress = (progress * 100).toInt()
-                    binding.tvModelStatus.text = "コピー中... ${(progress * 100).toInt()}%"
-                }
-            },
-            onSuccess = {
-                runOnUiThread {
-                    binding.downloadProgress.visibility = View.GONE
-                    Toast.makeText(this, "コピー完了！モデルを使用できます", Toast.LENGTH_SHORT).show()
-                    updateUI()
-                }
-            },
-            onFailure = { msg ->
-                runOnUiThread {
-                    binding.downloadProgress.visibility = View.GONE
-                    Toast.makeText(this, "コピー失敗: $msg", Toast.LENGTH_LONG).show()
-                    updateUI()
-                }
-            }
-        )
+    private fun loadBuddyPreview() {
+        val file = File(filesDir, OverlayService.CUSTOM_CHAR_FILE)
+        if (file.exists()) {
+            val bmp = BitmapFactory.decodeFile(file.absolutePath)
+            ivBuddyPreview.setImageBitmap(bmp)
+        } else {
+            ivBuddyPreview.setImageResource(android.R.drawable.ic_menu_camera)
+        }
+        // Interaction count from memory
+        val memory = MemoryStore(this).load()
+        tvInteractions.text = memory.recentEvents.size.toString()
     }
 
-    private fun startModelDownload() {
-        binding.btnDownloadModel.isEnabled = false
-        binding.downloadProgress.visibility = View.VISIBLE
-        binding.tvModelStatus.text = "ダウンロード中..."
-
-        modelDownloadManager.downloadModel(
-            onProgress = { progress ->
-                runOnUiThread {
-                    binding.downloadProgress.progress = (progress * 100).toInt()
-                    binding.tvModelStatus.text = "ダウンロード中... ${(progress * 100).toInt()}%"
-                }
-            },
-            onSuccess = {
-                runOnUiThread {
-                    binding.downloadProgress.visibility = View.GONE
-                    Toast.makeText(this, "モデルのダウンロード完了！", Toast.LENGTH_SHORT).show()
-                    updateUI()
-                }
-            },
-            onFailure = { msg ->
-                runOnUiThread {
-                    binding.downloadProgress.visibility = View.GONE
-                    binding.btnDownloadModel.isEnabled = true
-                    Toast.makeText(this, "ダウンロード失敗: $msg", Toast.LENGTH_LONG).show()
-                    updateUI()
-                }
+    private fun startUptimeCounter() {
+        val runnable = object : Runnable {
+            override fun run() {
+                val elapsed = System.currentTimeMillis() - startTime
+                val h = TimeUnit.MILLISECONDS.toHours(elapsed)
+                val m = TimeUnit.MILLISECONDS.toMinutes(elapsed) % 60
+                tvUptime.text = if (h > 0) "${h}h ${m}m" else "${m}m"
+                uptimeHandler.postDelayed(this, 60_000)
             }
-        )
+        }
+        uptimeHandler.post(runnable)
+    }
+
+    private fun updateStatusChip(active: Boolean) {
+        if (active) {
+            tvStatusText.text = "BUDDY ACTIVE"
+            dotStatus.setBackgroundColor(getColor(R.color.nr_cyber_green))
+        } else {
+            tvStatusText.text = "OFFLINE"
+            dotStatus.setBackgroundColor(getColor(R.color.nr_on_surface_variant))
+        }
     }
 
     private fun requestScreenCapture() {
@@ -159,43 +178,89 @@ class MainActivity : AppCompatActivity() {
             putExtra(OverlayService.EXTRA_PROJECTION_DATA, projectionData)
             putExtra(OverlayService.EXTRA_MODEL_PATH, modelPath)
         })
-        Toast.makeText(this, "GemmaBuddyを起動しました！", Toast.LENGTH_SHORT).show()
+        updateStatusChip(true)
+        Toast.makeText(this, "SESSION STARTED", Toast.LENGTH_SHORT).show()
     }
 
     private fun updateUI() {
         val hasOverlay = Settings.canDrawOverlays(this)
         val source = modelDownloadManager.getModelSource()
         val hasModel = source == ModelDownloadManager.ModelSource.INTERNAL ||
-                source == ModelDownloadManager.ModelSource.PLAY_ASSET_DELIVERY
+            source == ModelDownloadManager.ModelSource.PLAY_ASSET_DELIVERY
 
-        binding.btnOverlayPermission.isEnabled = !hasOverlay
-        binding.tvOverlayStatus.text =
-            if (hasOverlay) "✓ オーバーレイ権限: 付与済み" else "✗ オーバーレイ権限: 未付与（タップして設定へ）"
-
-        binding.tvModelStatus.text = when (source) {
-            ModelDownloadManager.ModelSource.INTERNAL ->
-                "✓ Gemma4モデル: 準備完了（内部ストレージ）"
-            ModelDownloadManager.ModelSource.EXTERNAL_NEEDS_COPY ->
-                "⚠ Gemma4モデル: 外部ストレージに検出（コピーが必要）"
-            ModelDownloadManager.ModelSource.PLAY_ASSET_DELIVERY ->
-                "✓ Gemma4モデル: ダウンロード済み"
-            ModelDownloadManager.ModelSource.NONE ->
-                "✗ Gemma4モデル: 未検出"
+        // Show permission button only if needed
+        if (!hasOverlay) {
+            btnOverlayPermission.visibility = View.VISIBLE
+            btnOverlayPermission.text = "GRANT OVERLAY PERMISSION"
+        } else {
+            btnOverlayPermission.visibility = View.GONE
         }
 
-        binding.btnCopyModel.visibility =
-            if (source == ModelDownloadManager.ModelSource.EXTERNAL_NEEDS_COPY) View.VISIBLE else View.GONE
-        binding.btnCopyModel.isEnabled = true
-
-        binding.btnDownloadModel.isEnabled =
-            source == ModelDownloadManager.ModelSource.NONE
-        binding.btnDownloadModel.text = when (source) {
-            ModelDownloadManager.ModelSource.INTERNAL -> "内部ストレージ使用中"
-            ModelDownloadManager.ModelSource.EXTERNAL_NEEDS_COPY -> "外部に検出済み（上のボタンでコピー）"
-            ModelDownloadManager.ModelSource.PLAY_ASSET_DELIVERY -> "ダウンロード済み"
-            ModelDownloadManager.ModelSource.NONE -> "Gemma4をダウンロード（Play）"
+        // Show model buttons only if needed
+        when (source) {
+            ModelDownloadManager.ModelSource.NONE -> {
+                btnDownloadModel.visibility = View.VISIBLE
+                btnDownloadModel.isEnabled = true
+                btnDownloadModel.text = "DOWNLOAD AI MODEL"
+                btnCopyModel.visibility = View.GONE
+            }
+            ModelDownloadManager.ModelSource.EXTERNAL_NEEDS_COPY -> {
+                btnCopyModel.visibility = View.VISIBLE
+                btnCopyModel.isEnabled = true
+                btnDownloadModel.visibility = View.GONE
+            }
+            else -> {
+                btnDownloadModel.visibility = View.GONE
+                btnCopyModel.visibility = View.GONE
+            }
         }
-        binding.downloadProgress.visibility = View.GONE
-        binding.btnStart.isEnabled = hasOverlay && hasModel
+
+        btnStart.isEnabled = hasOverlay && hasModel
+        loadBuddyPreview()
+    }
+
+    private fun startModelCopy() {
+        btnCopyModel.isEnabled = false
+        progressBar.visibility = View.VISIBLE
+        modelDownloadManager.copyModelToInternalStorage(
+            onProgress = { p -> runOnUiThread { progressBar.progress = (p * 100).toInt() } },
+            onSuccess = {
+                runOnUiThread {
+                    progressBar.visibility = View.GONE
+                    Toast.makeText(this, "MODEL READY", Toast.LENGTH_SHORT).show()
+                    updateUI()
+                }
+            },
+            onFailure = { msg ->
+                runOnUiThread {
+                    progressBar.visibility = View.GONE
+                    Toast.makeText(this, "COPY FAILED: $msg", Toast.LENGTH_LONG).show()
+                    updateUI()
+                }
+            }
+        )
+    }
+
+    private fun startModelDownload() {
+        btnDownloadModel.isEnabled = false
+        progressBar.visibility = View.VISIBLE
+        modelDownloadManager.downloadModel(
+            onProgress = { p -> runOnUiThread { progressBar.progress = (p * 100).toInt() } },
+            onSuccess = {
+                runOnUiThread {
+                    progressBar.visibility = View.GONE
+                    Toast.makeText(this, "DOWNLOAD COMPLETE", Toast.LENGTH_SHORT).show()
+                    updateUI()
+                }
+            },
+            onFailure = { msg ->
+                runOnUiThread {
+                    progressBar.visibility = View.GONE
+                    btnDownloadModel.isEnabled = true
+                    Toast.makeText(this, "DOWNLOAD FAILED: $msg", Toast.LENGTH_LONG).show()
+                    updateUI()
+                }
+            }
+        )
     }
 }

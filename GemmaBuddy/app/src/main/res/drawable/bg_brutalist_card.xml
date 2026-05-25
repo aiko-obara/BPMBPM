@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Brutalist ハードシャドウカード: 4dp ずらした黒矩形 + 上に白矩形 + 黒ボーダー -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Shadow layer (offset 4dp right + 4dp down) -->
+    <item
+        android:left="4dp"
+        android:top="4dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/nr_shadow" />
+        </shape>
+    </item>
+    <!-- Main card surface with border -->
+    <item
+        android:right="4dp"
+        android:bottom="4dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/nr_surface_lowest" />
+            <stroke android:width="1dp" android:color="@color/nr_shadow" />
+        </shape>
+    </item>
+</layer-list>

@@ -18,8 +18,13 @@ class GemmaManager(private val context: Context) {
     @Volatile private var engine: Engine? = null
     @Volatile private var conversation: com.google.ai.edge.litertlm.Conversation? = null
     @Volatile private var inferring = false
+    @Volatile private var currentMemoryDigest: String = ""
+    @Volatile private var closeRequested = false
 
-    suspend fun initialize(modelPath: String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun initialize(
+        modelPath: String,
+        memoryDigest: String = ""
+    ): Boolean = withContext(Dispatchers.IO) {
         try {
             val engineConfig = EngineConfig(
                 modelPath = modelPath,
@@ -29,14 +34,15 @@ class GemmaManager(private val context: Context) {
             )
             val eng = Engine(engineConfig)
             eng.initialize()
-
-            val convConfig = ConversationConfig(
-                systemInstruction = Contents.of(
-                    "あなたは画面上の8bitキャラクターです。ユーザーの画面を見て、画面の内容に触れながら短く愛嬌のある日本語コメントを1文だけしてください。"
-                )
-            )
+            // ネイティブ初期化完了後に終了要求を確認
+            if (closeRequested) {
+                try { eng.close() } catch (_: Exception) {}
+                return@withContext false
+            }
             engine = eng
-            conversation = eng.createConversation(convConfig)
+            currentMemoryDigest = memoryDigest
+            conversation = createConversationWithDigest(eng, memoryDigest)
+            if (closeRequested) { doClose(); return@withContext false }
             if (conversation == null) {
                 Log.e(TAG, "createConversation returned null")
                 return@withContext false
@@ -49,32 +55,126 @@ class GemmaManager(private val context: Context) {
         }
     }
 
-    fun isInferring() = inferring
+    /**
+     * 記憶ダイジェストを差し替えて Conversation を再構築する。
+     * Engine は使い回す（モデルの再ロードは不要）。
+     */
+    fun rebuildConversation(memoryDigest: String, force: Boolean = false) {
+        val eng = engine ?: return
+        if (!force && memoryDigest == currentMemoryDigest) return
+        try {
+            conversation?.close()
+            conversation = createConversationWithDigest(eng, memoryDigest)
+            currentMemoryDigest = memoryDigest
+            Log.i(TAG, "Conversation 再構築完了（force=$force）")
+        } catch (e: Exception) {
+            Log.e(TAG, "Conversation 再構築失敗", e)
+        }
+    }
+
+    private fun createConversationWithDigest(
+        eng: Engine,
+        memoryDigest: String
+    ): com.google.ai.edge.litertlm.Conversation? {
+        val prefs = context.getSharedPreferences(OverlayService.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+        val personality = BuddyPersonality.load(prefs)
+        val base = "あなたは画面上の8bitキャラクターです。ユーザーの画面を見て、" +
+            "画面の内容に触れながら短く愛嬌のある日本語コメントを1文だけしてください。\n" +
+            personality.prompt + "\n" +
+            "返答の最後に必ず[EMOTION:HAPPY|EXCITED|SAD|ANGRY|SLEEPY|NEUTRAL]のいずれか1つを付けること。例: 楽しそう！[EMOTION:HAPPY]"
+        val full = if (memoryDigest.isBlank()) base else "$base\n\n$memoryDigest"
+        val convConfig = ConversationConfig(systemInstruction = Contents.of(full))
+        return eng.createConversation(convConfig)
+    }
+
+    private fun parseEmotionTag(raw: String): Pair<String, BuddyEmotion> {
+        val regex = Regex("""\[EMOTION:(\w+)\]""")
+        val match = regex.find(raw)
+        val emotion = match?.groupValues?.getOrNull(1)?.let { BuddyEmotion.fromTag(it) } ?: BuddyEmotion.NEUTRAL
+        val text = raw.replace(regex, "").trim()
+        return Pair(text, emotion)
+    }
 
     /**
-     * テキスト記述からキャラクター各部位の色（パレットインデックス）を抽出する。
-     * 専用の system instruction で fresh Conversation を作り、既存の「画面キャラ」コンテキストを排除。
+     * 会話履歴をクリアするため Conversation を閉じて即再作成する。
+     * LiteRT-LM は1エンジンで同時に複数の Conversation を持てないため、
+     * 都度クリアして単一 Conversation を使い回す方式を採用する。
      */
-    suspend fun extractCharacterColors(
-        description: String,
-        type: TemplateType = TemplateType.HUMAN
-    ): String = withContext(Dispatchers.IO) {
+    private fun resetConversation() {
+        val eng = engine ?: return
+        try {
+            conversation?.close()
+            conversation = null
+            conversation = createConversationWithDigest(eng, currentMemoryDigest)
+            Log.d(TAG, "Conversation リセット完了")
+        } catch (e: Exception) {
+            Log.e(TAG, "Conversation リセット失敗", e)
+        }
+    }
+
+    suspend fun generateResponse(userMessage: String): Pair<String, BuddyEmotion> = withContext(Dispatchers.IO) {
+        inferring = true
+        val conv = conversation
+        if (conv == null || closeRequested) {
+            inferring = false
+            return@withContext Pair("モデルが読み込まれていません。", BuddyEmotion.NEUTRAL)
+        }
+        try {
+            val sb = StringBuilder()
+            conv.sendMessageAsync(userMessage).collect { chunk -> sb.append(chunk) }
+            parseEmotionTag(sb.toString().trim().ifEmpty { "うーん..." })
+        } catch (e: Exception) {
+            Log.e(TAG, "対話生成エラー", e)
+            Pair("ちょっと考え中〜", BuddyEmotion.NEUTRAL)
+        } finally {
+            inferring = false
+            if (closeRequested) doClose()
+        }
+    }
+
+    suspend fun generateChitchat(): Pair<String, BuddyEmotion> = withContext(Dispatchers.IO) {
+        inferring = true
+        val conv = conversation
+        if (conv == null || closeRequested) {
+            inferring = false
+            return@withContext Pair("モデルが読み込まれていません。", BuddyEmotion.NEUTRAL)
+        }
+        try {
+            val sb = StringBuilder()
+            conv.sendMessageAsync("今は画面を見ていない。ユーザーに気軽に一言話しかけて。").collect { chunk -> sb.append(chunk) }
+            parseEmotionTag(sb.toString().trim().ifEmpty { "やあ！" })
+        } catch (e: Exception) {
+            Log.e(TAG, "雑談生成エラー", e)
+            Pair("ちょっと考え中〜", BuddyEmotion.NEUTRAL)
+        } finally {
+            inferring = false
+            if (closeRequested) doClose()
+        }
+    }
+
+    /** Consolidation 用の単発推論。コメント生成と分離した独立コール。 */
+    suspend fun consolidationRequest(prompt: String): String = withContext(Dispatchers.IO) {
+        resetConversation()
         val conv = conversation ?: return@withContext ""
         try {
-            val prompt = CharacterTemplate.colorPromptFor(type) +
-                "\nDescription: \"$description\"\n"
             val sb = StringBuilder()
             conv.sendMessageAsync(prompt).collect { chunk -> sb.append(chunk) }
             sb.toString().trim()
         } catch (e: Exception) {
-            Log.e(TAG, "色抽出失敗", e)
+            Log.e(TAG, "Consolidation 推論失敗", e)
             ""
         }
     }
 
-    suspend fun generateComment(screenshot: Bitmap? = null): String = withContext(Dispatchers.IO) {
-        val conv = conversation ?: return@withContext "モデルが読み込まれていません。"
+    fun isInferring() = inferring
+
+    suspend fun generateComment(screenshot: Bitmap? = null): Pair<String, BuddyEmotion> = withContext(Dispatchers.IO) {
         inferring = true
+        val conv = conversation
+        if (conv == null || closeRequested) {
+            inferring = false
+            return@withContext Pair("モデルが読み込まれていません。", BuddyEmotion.NEUTRAL)
+        }
         try {
             Log.i(TAG, "推論開始")
             val sb = StringBuilder()
@@ -90,14 +190,15 @@ class GemmaManager(private val context: Context) {
             } else {
                 conv.sendMessageAsync("一言コメントして！").collect { chunk -> sb.append(chunk) }
             }
-            val result = sb.toString().trim()
-            Log.i(TAG, "推論完了: $result")
-            result.ifEmpty { "やあ！なんか用？" }
+            val raw = sb.toString().trim()
+            Log.i(TAG, "推論完了: $raw")
+            parseEmotionTag(raw.ifEmpty { "やあ！なんか用？" })
         } catch (e: Exception) {
             Log.e(TAG, "推論エラー", e)
-            "画面を見ているよ〜！"
+            Pair("画面を見ているよ〜！", BuddyEmotion.NEUTRAL)
         } finally {
             inferring = false
+            if (closeRequested) doClose()
         }
     }
 
@@ -112,10 +213,18 @@ class GemmaManager(private val context: Context) {
     fun isReady() = conversation != null
 
     fun close() {
+        closeRequested = true
+        // inferring=true なら generateComment の finally が doClose() を呼ぶ
+        // inferring=false なら今すぐ安全に閉じられる
+        if (!inferring) doClose()
+    }
+
+    private fun doClose() {
         conversation?.close()
-        engine?.close()
         conversation = null
+        val eng = engine
         engine = null
+        eng?.close()
     }
 
     companion object {

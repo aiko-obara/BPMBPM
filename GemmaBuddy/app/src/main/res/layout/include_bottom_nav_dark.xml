@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <View android:layout_width="match_parent" android:layout_height="1dp"
+        android:background="@color/nr_dark_container_high" />
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+        android:orientation="horizontal"
+        android:background="@color/nr_dark_container_low"
+        android:paddingLeft="8dp" android:paddingRight="8dp">
+
+        <LinearLayout android:id="@+id/nav_home"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical"
+            android:gravity="center" android:clickable="true" android:focusable="true">
+            <TextView android:id="@+id/nav_home_icon"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="⌂" android:textSize="22sp" android:textColor="@color/nr_dark_on_surface_variant" />
+            <TextView android:id="@+id/nav_home_label"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Home" android:fontFamily="@font/inter"
+                android:textSize="11sp" android:textColor="@color/nr_dark_on_surface_variant" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/nav_buddies"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical"
+            android:gravity="center" android:clickable="true" android:focusable="true">
+            <TextView android:id="@+id/nav_buddies_icon"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="⬡" android:textSize="22sp" android:textColor="@color/nr_dark_on_surface_variant" />
+            <TextView android:id="@+id/nav_buddies_label"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Buddies" android:fontFamily="@font/inter"
+                android:textSize="11sp" android:textColor="@color/nr_dark_on_surface_variant" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/nav_history"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical"
+            android:gravity="center" android:clickable="true" android:focusable="true">
+            <TextView android:id="@+id/nav_history_icon"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="◷" android:textSize="22sp" android:textColor="@color/nr_cyan" />
+            <TextView android:id="@+id/nav_history_label"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="History" android:fontFamily="@font/inter"
+                android:textSize="11sp" android:textColor="@color/nr_cyan" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/nav_settings"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical"
+            android:gravity="center" android:clickable="true" android:focusable="true">
+            <TextView android:id="@+id/nav_settings_icon"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="⚙" android:textSize="22sp" android:textColor="@color/nr_dark_on_surface_variant" />
+            <TextView android:id="@+id/nav_settings_label"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Settings" android:fontFamily="@font/inter"
+                android:textSize="11sp" android:textColor="@color/nr_dark_on_surface_variant" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

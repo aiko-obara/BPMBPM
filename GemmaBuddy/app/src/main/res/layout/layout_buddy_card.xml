@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1 件のバディを表すカード。CharacterGenerationActivity からコードで inflate して追加する。 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_glass_card"
+    android:padding="12dp"
+    android:elevation="2dp"
+    android:layout_marginBottom="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- サムネイル -->
+        <ImageView
+            android:id="@+id/iv_buddy_thumb"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:scaleType="fitCenter"
+            android:background="@drawable/bg_buddy_display"
+            android:contentDescription="buddy thumbnail"
+            android:layout_marginRight="12dp" />
+
+        <!-- 名前 + テンプレート -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_buddy_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Unit Alpha"
+                android:fontFamily="@font/space_grotesk"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/nr_on_surface" />
+
+            <TextView
+                android:id="@+id/tv_buddy_template"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HUMAN"
+                android:fontFamily="@font/inter"
+                android:textSize="11sp"
+                android:letterSpacing="0.06"
+                android:textColor="@color/nr_on_surface_variant" />
+        </LinearLayout>
+
+        <!-- ステータス: ONLINE チップ or SWITCH ボタン -->
+        <LinearLayout
+            android:id="@+id/chip_active"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chip_green"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:visibility="gone">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ONLINE"
+                android:fontFamily="@font/inter"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.06"
+                android:textColor="@color/nr_cyber_green" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="SWITCH"
+            android:background="@drawable/bg_secondary_button"
+            android:textColor="@color/nr_primary"
+            android:fontFamily="@font/inter"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.06"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:visibility="visible" />
+    </LinearLayout>
+
+    <!-- DELETE ボタン -->
+    <Button
+        android:id="@+id/btn_delete"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:text="DELETE"
+        android:background="@drawable/bg_danger_button"
+        android:textColor="@color/nr_red"
+        android:fontFamily="@font/inter"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.08"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

@@ -9,4 +9,34 @@
     <color name="white">#FFFFFFFF</color>
     <color name="pixel_green">#4CAF50</color>
     <color name="bubble_bg">#FFFFF0</color>
+
+    <!-- Light theme (Home / Buddies / Settings) -->
+    <color name="nr_surface">#f7f9fb</color>
+    <color name="nr_surface_lowest">#ffffff</color>
+    <color name="nr_surface_container">#eceef0</color>
+    <color name="nr_surface_variant">#e0e3e5</color>
+    <color name="nr_on_surface">#191c1e</color>
+    <color name="nr_on_surface_variant">#44474c</color>
+    <color name="nr_primary">#3498db</color>
+    <color name="nr_on_primary">#ffffff</color>
+    <color name="nr_outline_variant">#c5c6cd</color>
+    <color name="nr_outline">#75777d</color>
+
+    <!-- Dark theme (Splash / History) -->
+    <color name="nr_dark_surface">#111316</color>
+    <color name="nr_dark_container">#1e2023</color>
+    <color name="nr_dark_container_low">#1a1c1f</color>
+    <color name="nr_dark_container_high">#282a2d</color>
+    <color name="nr_dark_on_surface">#e2e2e6</color>
+    <color name="nr_dark_on_surface_variant">#bfc7d2</color>
+    <color name="nr_cyan">#92ccff</color>
+    <color name="nr_on_cyan">#003351</color>
+
+    <!-- Common accents -->
+    <color name="nr_cyber_green">#4ae183</color>
+    <color name="nr_red">#c4041a</color>
+    <color name="nr_error">#ffb4ab</color>
+
+    <!-- Legacy (kept for overlay bubble) -->
+    <color name="nr_shadow">#191c1d</color>
 </resources>

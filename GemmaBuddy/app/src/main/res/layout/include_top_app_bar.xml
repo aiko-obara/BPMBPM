@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:orientation="horizontal"
+    android:background="@color/nr_surface_lowest"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:gravity="center_vertical">
+
+    <!-- Grid icon (4 squares) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⊞"
+        android:textSize="20sp"
+        android:textColor="@color/nr_primary"
+        android:paddingRight="8dp" />
+
+    <!-- GemmaBuddy italic title -->
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="GemmaBuddy"
+        android:textColor="@color/nr_primary"
+        android:fontFamily="@font/space_grotesk"
+        android:textSize="20sp"
+        android:textStyle="bold|italic" />
+
+    <!-- Avatar placeholder -->
+    <LinearLayout
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="@drawable/bg_buddy_display"
+        android:gravity="center">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="👤"
+            android:textSize="18sp" />
+    </LinearLayout>
+</LinearLayout>

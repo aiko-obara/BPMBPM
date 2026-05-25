@@ -21,7 +21,10 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.View
 import android.view.WindowManager
+import android.widget.Button
+import android.widget.EditText
 import android.widget.FrameLayout
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -42,23 +45,68 @@ class OverlayService : LifecycleService() {
 
     private var charLayoutParams: WindowManager.LayoutParams? = null
 
+    private var dialogInputRoot: View? = null
+    private var dialogTurnCount = 0
+    private val dialogTimeoutRunnable = Runnable { exitDialogMode() }
+
+    private var currentEmotion = BuddyEmotion.NEUTRAL
+    private var lastReactionAt = 0L
+
+    private var clipboardManager: android.content.ClipboardManager? = null
+    private val clipboardListener = android.content.ClipboardManager.OnPrimaryClipChangedListener {
+        val text = clipboardManager?.primaryClip?.getItemAt(0)?.text?.toString() ?: return@OnPrimaryClipChangedListener
+        if (text.length >= 10 && canReact()) {
+            performReactionToEvent("クリップボードにコピーした内容: $text")
+        }
+    }
+
+    private lateinit var memoryStore: MemoryStore
+    private lateinit var memory: CharacterMemory
+    private var consolidating = false
+    private var isShuttingDown = false
+
     private val characterReloadReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == ACTION_RELOAD_CHARACTER) loadCharacterAssets()
+            when (intent.action) {
+                ACTION_RELOAD_CHARACTER -> {
+                    loadCharacterAssets()
+                    handler.post { updateBubbleStyle() }
+                }
+                ACTION_RELOAD_PERSONALITY -> {
+                    gemmaManager?.rebuildConversation(memoryStore.buildContextDigest(), force = true)
+                    handler.post { updateBubbleStyle() }
+                    Log.i(TAG, "性格変更反映")
+                }
+                BuddyNotificationListener.ACTION_NOTIFICATION_RECEIVED -> {
+                    val text = intent.getStringExtra(BuddyNotificationListener.EXTRA_NOTIFICATION_TEXT) ?: return
+                    if (canReact()) performReactionToEvent("通知が来たよ: $text")
+                }
+            }
         }
     }
 
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        memoryStore = MemoryStore(this)
+        memory = memoryStore.load()
+        Log.i(TAG, "記憶読み込み完了: events=${memory.recentEvents.size}, " +
+                "consolidatedAt=${memory.lastConsolidatedAt}")
         gemmaManager = GemmaManager(this)
         // Android 14+はmediaProjection型でstartForeground()する前に
         // 画面キャプチャ権限が必要なため、起動時はspecialUseのみで開始
         startForegroundCompat()
         setupOverlay()
         loadCharacterAssets()
-        registerReceiver(characterReloadReceiver, IntentFilter(ACTION_RELOAD_CHARACTER),
-            RECEIVER_NOT_EXPORTED)
+        val filter = IntentFilter().apply {
+            addAction(ACTION_RELOAD_CHARACTER)
+            addAction(ACTION_RELOAD_PERSONALITY)
+            addAction(BuddyNotificationListener.ACTION_NOTIFICATION_RECEIVED)
+        }
+        registerReceiver(characterReloadReceiver, filter, RECEIVER_NOT_EXPORTED)
+
+        clipboardManager = getSystemService(android.content.ClipboardManager::class.java)
+        clipboardManager?.addPrimaryClipChangedListener(clipboardListener)
     }
 
     private fun loadCharacterAssets() {
@@ -66,8 +114,19 @@ class OverlayService : LifecycleService() {
         if (!file.exists()) return
         try {
             val bitmap = BitmapFactory.decodeFile(file.absolutePath) ?: return
-            handler.post { characterView?.setCustomBitmap(bitmap) }
-            Log.i(TAG, "カスタムキャラクター読み込み完了")
+            val normal2 = File(filesDir, BuddyStore.CUSTOM_CHAR_NORMAL2_FILE)
+                .takeIf { it.exists() }?.let { BitmapFactory.decodeFile(it.absolutePath) }
+            val speaking = File(filesDir, BuddyStore.CUSTOM_CHAR_SPEAKING_FILE)
+                .takeIf { it.exists() }?.let { BitmapFactory.decodeFile(it.absolutePath) }
+
+            handler.post {
+                if (normal2 != null || speaking != null) {
+                    characterView?.setFrames(listOfNotNull(bitmap, normal2), speaking)
+                } else {
+                    characterView?.setCustomBitmap(bitmap)
+                }
+            }
+            Log.i(TAG, "カスタムキャラクター読み込み完了 (normal2=${normal2 != null}, speaking=${speaking != null})")
         } catch (e: Exception) {
             Log.e(TAG, "カスタムキャラクター読み込み失敗", e)
         }
@@ -113,7 +172,8 @@ class OverlayService : LifecycleService() {
         Log.i(TAG, "モデル初期化開始: $modelPath")
         speechBubbleView?.showText("モデル読み込み中...少し待ってね")
         lifecycleScope.launch {
-            val ok = gemmaManager!!.initialize(modelPath)
+            val ok = gemmaManager!!.initialize(modelPath, memoryStore.buildContextDigest())
+            if (isShuttingDown) return@launch
             if (ok) {
                 handler.post { speechBubbleView?.showText("準備完了！タップしてね♪") }
                 scheduleMonitoring()
@@ -145,10 +205,55 @@ class OverlayService : LifecycleService() {
         lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             val screenshot = capture?.captureScreen()
             Log.i(TAG, "スクリーンショット: ${if (screenshot != null) "${screenshot.width}x${screenshot.height}" else "null"}")
-            val comment = gemma.generateComment(screenshot)
-            Log.i(TAG, "コメント生成完了: $comment")
+            val (comment, emotion) = gemma.generateComment(screenshot)
+            if (isShuttingDown) return@launch
+            Log.i(TAG, "コメント生成完了: $comment [emotion=$emotion]")
             handler.post {
+                applyEmotion(emotion)
                 speechBubbleView?.showText(comment)
+                characterView?.setSpeaking(true)
+            }
+            memory.addEvent(comment)
+            memoryStore.save(memory)
+            maybeConsolidate(gemma)
+        }
+    }
+
+    private fun performChitchat() {
+        val gemma = gemmaManager ?: return
+        if (!gemma.isReady()) return
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val (comment, emotion) = gemma.generateChitchat()
+            if (isShuttingDown) return@launch
+            handler.post {
+                applyEmotion(emotion)
+                speechBubbleView?.showText(comment)
+                characterView?.setSpeaking(true)
+            }
+            memory.addEvent(comment)
+            memoryStore.save(memory)
+            maybeConsolidate(gemma)
+        }
+    }
+
+    private fun maybeConsolidate(gemma: GemmaManager) {
+        if (consolidating) return
+        if (!memory.shouldConsolidate()) return
+        consolidating = true
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                Log.i(TAG, "Consolidation 実行")
+                val consolidator = MemoryConsolidator(gemma)
+                val updated = consolidator.consolidate(memory)
+                if (updated != null) {
+                    memoryStore.save(updated)
+                    gemma.rebuildConversation(memoryStore.buildContextDigest())
+                    Log.i(TAG, "Consolidation 完了・人格更新")
+                } else {
+                    Log.w(TAG, "Consolidation 失敗、profile は据え置き")
+                }
+            } finally {
+                consolidating = false
             }
         }
     }
@@ -174,6 +279,7 @@ class OverlayService : LifecycleService() {
 
         characterView = overlayRoot!!.findViewById(R.id.character_view)
         speechBubbleView = overlayRoot!!.findViewById(R.id.speech_bubble)
+        speechBubbleView?.onHideListener = { characterView?.setSpeaking(false) }
 
         characterView?.onMoveListener = { dx, dy ->
             charLayoutParams?.let { lp ->
@@ -183,21 +289,193 @@ class OverlayService : LifecycleService() {
             }
         }
 
+        characterView?.onLongPressListener = {
+            if (!isShuttingDown) {
+                isShuttingDown = true
+                monitorRunnable?.let { handler.removeCallbacks(it) }
+                exitDialogMode()
+
+                val farewell = FAREWELL_COMMENTS.random()
+                speechBubbleView?.onTypewriterDoneListener = {
+                    val assetFiles = assets.list("elements/escape")
+                        ?.toList()?.sorted() ?: emptyList()
+                    val frames = assetFiles.mapNotNull { name ->
+                        runCatching {
+                            BitmapFactory.decodeStream(assets.open("elements/escape/$name"))
+                        }.getOrNull()
+                    }
+                    if (frames.isNotEmpty()) {
+                        characterView?.playEscapeAnimation(frames) { stopSelf() }
+                    } else {
+                        stopSelf()
+                    }
+                }
+                speechBubbleView?.showText(farewell)
+                characterView?.setSpeaking(true)
+            }
+        }
+
         characterView?.onTapListener = {
             when {
-                gemmaManager?.isReady() != true ->
+                gemmaManager?.isReady() != true -> {
                     speechBubbleView?.showText("まだ読み込み中...もう少し待ってね！")
-                gemmaManager?.isInferring() == true ->
-                    speechBubbleView?.showText(IDLE_COMMENTS.random())
+                    characterView?.setSpeaking(true)
+                }
+                gemmaManager?.isInferring() == true -> { /* 生成完了まで無視 */ }
+                screenCaptureManager == null -> {
+                    speechBubbleView?.showText("考え中だよ〜！")
+                    characterView?.setSpeaking(true)
+                    performChitchat()
+                }
                 else -> {
                     speechBubbleView?.showText("考え中だよ〜！")
+                    characterView?.setSpeaking(true)
                     performMonitorCycle()
                 }
             }
         }
 
+        speechBubbleView?.setOnClickListener {
+            if (gemmaManager?.isReady() == true && !isShuttingDown && dialogInputRoot == null) {
+                enterDialogMode()
+            }
+        }
+
+        updateBubbleStyle()
         windowManager.addView(overlayRoot, params)
         Log.i(TAG, "オーバーレイ表示")
+    }
+
+    private fun updateBubbleStyle() {
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val personality = BuddyPersonality.load(prefs)
+        val buddyName = BuddyStore(this).getActive()?.name ?: "BUDDY"
+        val color = if (currentEmotion == BuddyEmotion.NEUTRAL) personality.color else currentEmotion.accentColor
+        speechBubbleView?.setStyle(color, buddyName)
+    }
+
+    private fun applyEmotion(emotion: BuddyEmotion) {
+        currentEmotion = emotion
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val buddyName = BuddyStore(this).getActive()?.name ?: "BUDDY"
+        speechBubbleView?.setStyle(emotion.accentColor, buddyName)
+        characterView?.setEmotion(emotion)
+    }
+
+    private fun canReact(): Boolean {
+        val now = System.currentTimeMillis()
+        return !isShuttingDown &&
+                gemmaManager?.isReady() == true &&
+                gemmaManager?.isInferring() == false &&
+                now - lastReactionAt > REACTION_COOLDOWN_MS
+    }
+
+    private fun performReactionToEvent(eventText: String) {
+        val gemma = gemmaManager ?: return
+        lastReactionAt = System.currentTimeMillis()
+        handler.post {
+            speechBubbleView?.showText("ん？")
+            characterView?.setSpeaking(true)
+        }
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val (response, emotion) = gemma.generateResponse(eventText)
+            if (isShuttingDown) return@launch
+            memory.addEvent("反応: $response")
+            memoryStore.save(memory)
+            handler.post {
+                applyEmotion(emotion)
+                speechBubbleView?.showText(response)
+                characterView?.setSpeaking(true)
+            }
+        }
+    }
+
+    private fun enterDialogMode() {
+        dialogTurnCount = 0
+        val panelView = LayoutInflater.from(this).inflate(R.layout.dialog_input_panel, null)
+        val etInput = panelView.findViewById<EditText>(R.id.et_dialog_input)
+
+        panelView.findViewById<Button>(R.id.btn_dialog_send).setOnClickListener {
+            val msg = etInput.text.toString().trim()
+            if (msg.isNotEmpty() && gemmaManager?.isInferring() == false) {
+                etInput.setText("")
+                sendDialogMessage(msg)
+            }
+        }
+
+        etInput.setOnEditorActionListener { _, _, _ ->
+            val msg = etInput.text.toString().trim()
+            if (msg.isNotEmpty() && gemmaManager?.isInferring() == false) {
+                etInput.setText("")
+                sendDialogMessage(msg)
+            }
+            true
+        }
+
+        panelView.findViewById<Button>(R.id.btn_dialog_close).setOnClickListener {
+            exitDialogMode()
+        }
+
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            android.graphics.PixelFormat.TRANSLUCENT
+        ).apply { gravity = Gravity.BOTTOM }
+
+        dialogInputRoot = panelView
+        windowManager.addView(panelView, params)
+        etInput.requestFocus()
+        scheduleDialogTimeout()
+        Log.i(TAG, "対話モード開始")
+    }
+
+    private fun exitDialogMode() {
+        handler.removeCallbacks(dialogTimeoutRunnable)
+        dialogInputRoot?.let {
+            try { windowManager.removeView(it) } catch (_: Exception) {}
+        }
+        dialogInputRoot = null
+        dialogTurnCount = 0
+        handler.post {
+            applyEmotion(BuddyEmotion.NEUTRAL)
+            updateBubbleStyle()
+            speechBubbleView?.showText("またね〜！")
+            characterView?.setSpeaking(true)
+        }
+        Log.i(TAG, "対話モード終了")
+    }
+
+    private fun sendDialogMessage(message: String) {
+        val gemma = gemmaManager ?: return
+        handler.removeCallbacks(dialogTimeoutRunnable)
+        handler.post {
+            speechBubbleView?.showText("考え中...")
+            characterView?.setSpeaking(true)
+        }
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val (response, emotion) = gemma.generateResponse(message)
+            if (isShuttingDown) return@launch
+            dialogTurnCount++
+            memory.addEvent("対話: $message → $response")
+            memoryStore.save(memory)
+            handler.post {
+                applyEmotion(emotion)
+                speechBubbleView?.showText(response)
+                characterView?.setSpeaking(true)
+                if (dialogTurnCount >= DIALOG_MAX_TURNS) {
+                    handler.postDelayed({ exitDialogMode() }, 3000)
+                } else {
+                    scheduleDialogTimeout()
+                }
+            }
+        }
+    }
+
+    private fun scheduleDialogTimeout() {
+        handler.postDelayed(dialogTimeoutRunnable, DIALOG_TIMEOUT_MS)
     }
 
     private fun buildNotification(): Notification {
@@ -237,12 +515,15 @@ class OverlayService : LifecycleService() {
     }
 
     override fun onDestroy() {
-        monitorRunnable?.let { handler.removeCallbacks(it) }
+        isShuttingDown = true
+        handler.removeCallbacksAndMessages(null)
+        clipboardManager?.removePrimaryClipChangedListener(clipboardListener)
         unregisterReceiver(characterReloadReceiver)
         screenCaptureManager?.stop()
-        gemmaManager?.close()
+        dialogInputRoot?.let { try { windowManager.removeView(it) } catch (_: Exception) {} }
         overlayRoot?.let { windowManager.removeView(it) }
-        super.onDestroy()
+        super.onDestroy()           // lifecycleScope のコルーチンをキャンセル
+        gemmaManager?.close()       // コルーチンキャンセル後にネイティブリソース解放
         Log.i(TAG, "OverlayService 停止")
     }
 
@@ -263,17 +544,22 @@ class OverlayService : LifecycleService() {
         private const val NOTIFICATION_ID = 1001
         private const val RESULT_OK_CODE = -1
         const val ACTION_RELOAD_CHARACTER = "com.example.gemmabuddy.ACTION_RELOAD_CHARACTER"
+        const val ACTION_RELOAD_PERSONALITY = "com.example.gemmabuddy.ACTION_RELOAD_PERSONALITY"
         const val CUSTOM_CHAR_FILE = "custom_character.png"
 
-        private val IDLE_COMMENTS = listOf(
-            "ちょっと待ってて〜！",
-            "今考え中だよ〜、急かさないで！",
-            "えへへ、もうちょっとだよ！",
-            "うーん...もうすぐだから！",
-            "やだやだ〜！せっかちだね〜",
-            "今忙しいんだよ〜！",
-            "きゃー！もう少しだけ待って！",
-            "いまいまいま考えてるとこ！"
+        private const val DIALOG_MAX_TURNS = 5
+        private const val DIALOG_TIMEOUT_MS = 30_000L
+        private const val REACTION_COOLDOWN_MS = 60_000L
+
+        private val FAREWELL_COMMENTS = listOf(
+            "おやすみ〜！またね♪",
+            "じゃあね！またすぐ来てね！",
+            "バイバイ！寂しいな〜",
+            "またね！待ってるよ〜！",
+            "おやすみなさい...ゆっくり休んでね",
+            "またね！次も一緒に頑張ろうね♪",
+            "バイバーイ！元気でね！"
         )
+
     }
 }

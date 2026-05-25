@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/nr_dark_surface"
+    android:fitsSystemWindows="true">
+
+    <!-- Dark top bar -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:orientation="horizontal" android:background="@color/nr_dark_container_low"
+        android:paddingLeft="16dp" android:paddingRight="16dp"
+        android:gravity="center_vertical">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="⊞" android:textSize="20sp" android:textColor="@color/nr_cyan"
+            android:paddingRight="8dp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="GemmaBuddy"
+            android:textColor="@color/nr_cyan" android:fontFamily="@font/space_grotesk"
+            android:textSize="20sp" android:textStyle="bold|italic" />
+        <LinearLayout android:layout_width="36dp" android:layout_height="36dp"
+            android:background="@drawable/bg_buddy_display" android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="👤" android:textSize="18sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Search bar -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="16dp" android:background="@color/nr_dark_container_low">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
+            android:background="@drawable/bg_dark_card" android:orientation="horizontal"
+            android:gravity="center_vertical" android:paddingLeft="12dp" android:paddingRight="12dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="🔍" android:textSize="14sp" android:paddingRight="8dp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Search conversations..."
+                android:fontFamily="@font/inter" android:textSize="14sp"
+                android:textColor="@color/nr_dark_on_surface_variant" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="16dp">
+
+            <!-- Heading with yellow left border -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+                <View android:layout_width="4dp" android:layout_height="32dp"
+                    android:background="#FFCC00" android:layout_marginRight="12dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Conversation History"
+                    android:fontFamily="@font/space_grotesk" android:textSize="24sp"
+                    android:textStyle="bold" android:textColor="@color/nr_dark_on_surface" />
+            </LinearLayout>
+
+            <!-- Log entries from memory -->
+            <LinearLayout android:id="@+id/layout_events" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:layout_marginBottom="16dp">
+
+                <!-- Profile summary card -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/bg_dark_card" android:orientation="vertical"
+                    android:padding="16dp" android:layout_marginBottom="8dp"
+                    android:elevation="4dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="CHARACTER PROFILE"
+                        android:fontFamily="@font/inter" android:textSize="10sp"
+                        android:textStyle="bold" android:letterSpacing="0.08"
+                        android:textColor="@color/nr_cyan"
+                        android:layout_marginBottom="8dp" />
+                    <TextView android:id="@+id/tv_profile"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:text="No memory yet."
+                        android:fontFamily="@font/inter" android:textSize="13sp"
+                        android:textColor="@color/nr_dark_on_surface_variant" />
+                </LinearLayout>
+
+                <!-- 大切な思い出 -->
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="IMPORTANT MEMORIES"
+                    android:fontFamily="@font/inter" android:textSize="10sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:textColor="@color/nr_cyan"
+                    android:layout_marginBottom="8dp" android:layout_marginTop="16dp" />
+
+                <TextView android:id="@+id/tv_important"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text=""
+                    android:fontFamily="@font/inter" android:textSize="13sp"
+                    android:textColor="@color/nr_dark_on_surface_variant"
+                    android:background="@drawable/bg_dark_card" android:padding="16dp"
+                    android:elevation="4dp"
+                    android:layout_marginBottom="4dp" />
+
+                <!-- 過去30日間 -->
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="LAST 30 DAYS"
+                    android:fontFamily="@font/inter" android:textSize="10sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:textColor="@color/nr_dark_on_surface_variant"
+                    android:layout_marginBottom="8dp" android:layout_marginTop="16dp" />
+
+                <TextView android:id="@+id/tv_month"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text=""
+                    android:fontFamily="@font/inter" android:textSize="13sp"
+                    android:textColor="@color/nr_dark_on_surface_variant"
+                    android:background="@drawable/bg_dark_card" android:padding="16dp"
+                    android:elevation="4dp"
+                    android:layout_marginBottom="4dp" />
+
+                <!-- Recent events -->
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="TODAY'S LOGS"
+                    android:fontFamily="@font/inter" android:textSize="10sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:textColor="@color/nr_dark_on_surface_variant"
+                    android:layout_marginBottom="8dp" android:layout_marginTop="16dp" />
+
+                <TextView android:id="@+id/tv_events"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text=""
+                    android:fontFamily="@font/inter" android:textSize="13sp"
+                    android:textColor="@color/nr_dark_on_surface_variant"
+                    android:background="@drawable/bg_dark_card" android:padding="16dp"
+                    android:elevation="4dp" />
+            </LinearLayout>
+
+            <!-- Purge button -->
+            <Button android:id="@+id/btn_reset"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="WIPE MEMORY CORE"
+                android:background="@drawable/bg_danger_button"
+                android:textColor="@color/nr_red"
+                android:fontFamily="@font/inter" android:textSize="12sp"
+                android:textStyle="bold" android:letterSpacing="0.08" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Dark bottom nav -->
+    <FrameLayout android:id="@+id/bottom_nav_container"
+        android:layout_width="match_parent" android:layout_height="wrap_content">
+        <include layout="@layout/include_bottom_nav_dark" />
+    </FrameLayout>
+</LinearLayout>

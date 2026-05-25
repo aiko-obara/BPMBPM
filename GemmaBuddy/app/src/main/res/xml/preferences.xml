@@ -8,6 +8,14 @@
         android:summary="@string/pref_api_key_summary" />
 
     <ListPreference
+        android:key="typewriter_speed"
+        android:title="会話スピード"
+        android:entries="@array/speed_labels"
+        android:entryValues="@array/speed_values"
+        android:defaultValue="60"
+        app:useSimpleSummaryProvider="true" />
+
+    <ListPreference
         android:key="interval_choice"
         android:title="@string/pref_interval_title"
         android:summary="@string/pref_interval_summary"

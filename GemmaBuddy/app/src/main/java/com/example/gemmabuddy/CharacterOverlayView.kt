@@ -21,17 +21,70 @@ class CharacterOverlayView @JvmOverloads constructor(
     private val pixelPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var gifDrawable: GifDrawable? = null
     private var customBitmap: Bitmap? = null
+
+    // マルチフレーム
+    private var normalFrames: List<Bitmap> = emptyList()
+    private var speakingFrame: Bitmap? = null
+    private var isSpeaking = false
+    private var frameIndex = 0
+
     private var bobYOffset = 0f
-    private val bobOffsets = floatArrayOf(0f, -3f, 0f, 3f)
+    private var bobAmplitude = 3f
+    private var bobIntervalMs = 250L
     private var bobIndex = 0
     private val bobHandler = Handler(Looper.getMainLooper())
+
+    private var escapeFrames: List<Bitmap> = emptyList()
+    private var escapeFrameIndex = 0
+    private var onEscapeComplete: (() -> Unit)? = null
+    private var isEscaping = false
+    private val ESCAPE_TOTAL_CYCLES = 6
+    private val ESCAPE_FRAME_MS = 200L
+
+    private val escapeRunnable = object : Runnable {
+        override fun run() {
+            if (escapeFrames.isEmpty()) return
+            customBitmap = escapeFrames[escapeFrameIndex % escapeFrames.size]
+            escapeFrameIndex++
+            invalidate()
+            requestLayout()
+            if (escapeFrameIndex < escapeFrames.size * ESCAPE_TOTAL_CYCLES) {
+                bobHandler.postDelayed(this, ESCAPE_FRAME_MS)
+            } else {
+                isEscaping = false
+                onEscapeComplete?.invoke()
+            }
+        }
+    }
+
+    fun playEscapeAnimation(frames: List<Bitmap>, onComplete: () -> Unit) {
+        bobHandler.removeCallbacks(bobRunnable)
+        bobHandler.removeCallbacks(escapeRunnable)
+        escapeFrames = frames.map { scaleToFit(it) }
+        escapeFrameIndex = 0
+        onEscapeComplete = onComplete
+        isEscaping = true
+        bobHandler.post(escapeRunnable)
+    }
     private val bobRunnable = object : Runnable {
         override fun run() {
-            bobIndex = (bobIndex + 1) % bobOffsets.size
-            bobYOffset = bobOffsets[bobIndex]
+            bobIndex = (bobIndex + 1) % 4
+            bobYOffset = when (bobIndex) {
+                1 -> -bobAmplitude
+                3 ->  bobAmplitude
+                else -> 0f
+            }
+            if (bobIndex == 0 && normalFrames.size > 1) {
+                frameIndex = (frameIndex + 1) % normalFrames.size
+            }
             invalidate()
-            bobHandler.postDelayed(this, 250)
+            bobHandler.postDelayed(this, bobIntervalMs)
         }
+    }
+
+    fun setEmotion(emotion: BuddyEmotion) {
+        bobAmplitude = emotion.bobAmplitude
+        bobIntervalMs = emotion.bobIntervalMs
     }
 
     // デフォルト 8bit ピクセルキャラ
@@ -48,6 +101,9 @@ class CharacterOverlayView @JvmOverloads constructor(
 
     var onMoveListener: ((dx: Float, dy: Float) -> Unit)? = null
     var onTapListener: (() -> Unit)? = null
+    var onLongPressListener: (() -> Unit)? = null
+
+    private val longPressRunnable = Runnable { onLongPressListener?.invoke() }
 
     private var touchStartX = 0f
     private var touchStartY = 0f
@@ -66,23 +122,68 @@ class CharacterOverlayView @JvmOverloads constructor(
     fun setCustomBitmap(bitmap: Bitmap) {
         gifDrawable?.stop()
         gifDrawable = null
-        customBitmap = Bitmap.createScaledBitmap(bitmap, CUSTOM_CHAR_SIZE, CUSTOM_CHAR_SIZE, false)
+        normalFrames = emptyList()
+        speakingFrame = null
+        customBitmap = scaleToFit(bitmap)
+        frameIndex = 0
+        isSpeaking = false
         bobHandler.removeCallbacks(bobRunnable)
         bobHandler.post(bobRunnable)
         invalidate()
         requestLayout()
     }
 
-    fun clearCustomBitmap() {
-        bobHandler.removeCallbacks(bobRunnable)
+    /** 通常フレーム複数 + 発話フレームをセット */
+    fun setFrames(normals: List<Bitmap>, speaking: Bitmap?) {
+        gifDrawable?.stop()
+        gifDrawable = null
         customBitmap = null
+        normalFrames = normals.map { scaleToFit(it) }
+        speakingFrame = speaking?.let { scaleToFit(it) }
+        frameIndex = 0
+        isSpeaking = false
+        bobHandler.removeCallbacks(bobRunnable)
+        bobHandler.post(bobRunnable)
         invalidate()
         requestLayout()
     }
 
+    fun setSpeaking(speaking: Boolean) {
+        if (isSpeaking == speaking) return
+        isSpeaking = speaking
+        invalidate()
+    }
+
+    fun clearCustomBitmap() {
+        bobHandler.removeCallbacks(bobRunnable)
+        customBitmap = null
+        normalFrames = emptyList()
+        speakingFrame = null
+        invalidate()
+        requestLayout()
+    }
+
+    private fun scaleToFit(bitmap: Bitmap): Bitmap {
+        val scale = minOf(
+            CUSTOM_CHAR_MAX_PX.toFloat() / bitmap.width,
+            CUSTOM_CHAR_MAX_PX.toFloat() / bitmap.height
+        )
+        val newW = (bitmap.width * scale).toInt().coerceAtLeast(1)
+        val newH = (bitmap.height * scale).toInt().coerceAtLeast(1)
+        return Bitmap.createScaledBitmap(bitmap, newW, newH, true)
+    }
+
+    private fun currentBmp(): Bitmap? = when {
+        isEscaping -> customBitmap
+        isSpeaking && speakingFrame != null -> speakingFrame
+        normalFrames.isNotEmpty() -> normalFrames[frameIndex]
+        else -> customBitmap
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val bmp = currentBmp()
         when {
-            customBitmap != null -> setMeasuredDimension(CUSTOM_CHAR_SIZE, CUSTOM_CHAR_SIZE)
+            bmp != null -> setMeasuredDimension(bmp.width, bmp.height)
             gifDrawable != null -> setMeasuredDimension(
                 gifDrawable!!.intrinsicWidth, gifDrawable!!.intrinsicHeight
             )
@@ -94,8 +195,9 @@ class CharacterOverlayView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
+        val bmp = currentBmp()
         when {
-            customBitmap != null -> canvas.drawBitmap(customBitmap!!, 0f, bobYOffset, null)
+            bmp != null -> canvas.drawBitmap(bmp, 0f, bobYOffset, null)
             gifDrawable != null -> {
                 gifDrawable!!.setBounds(0, 0, width, height)
                 gifDrawable!!.draw(canvas)
@@ -125,6 +227,7 @@ class CharacterOverlayView @JvmOverloads constructor(
                 touchStartX = event.rawX
                 touchStartY = event.rawY
                 isDragging = false
+                bobHandler.postDelayed(longPressRunnable, LONG_PRESS_MS)
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
@@ -132,6 +235,7 @@ class CharacterOverlayView @JvmOverloads constructor(
                 val dy = event.rawY - touchStartY
                 if (!isDragging && (abs(dx) > 10 || abs(dy) > 10)) {
                     isDragging = true
+                    bobHandler.removeCallbacks(longPressRunnable)
                 }
                 if (isDragging) {
                     onMoveListener?.invoke(dx, dy)
@@ -141,6 +245,7 @@ class CharacterOverlayView @JvmOverloads constructor(
                 return true
             }
             MotionEvent.ACTION_UP -> {
+                bobHandler.removeCallbacks(longPressRunnable)
                 if (!isDragging) onTapListener?.invoke()
                 return true
             }
@@ -155,9 +260,12 @@ class CharacterOverlayView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         bobHandler.removeCallbacks(bobRunnable)
+        bobHandler.removeCallbacks(longPressRunnable)
+        bobHandler.removeCallbacks(escapeRunnable)
     }
 
     companion object {
-        const val CUSTOM_CHAR_SIZE = 128
+        const val CUSTOM_CHAR_MAX_PX = 300
+        const val LONG_PRESS_MS = 600L
     }
 }

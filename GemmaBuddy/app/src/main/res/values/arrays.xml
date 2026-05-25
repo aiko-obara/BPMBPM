@@ -16,4 +16,25 @@
         <item>600000</item>
         <item>1800000</item>
     </string-array>
+    <string-array name="speed_labels">
+        <item>はやい</item>
+        <item>ふつう</item>
+        <item>ゆっくり</item>
+    </string-array>
+    <string-array name="speed_values">
+        <item>30</item>
+        <item>60</item>
+        <item>120</item>
+    </string-array>
+    <!-- Google Fonts certificates for downloadable fonts -->
+    <array name="com_google_android_gms_fonts_certs">
+        <item>@array/com_google_android_gms_fonts_certs_dev</item>
+        <item>@array/com_google_android_gms_fonts_certs_prod</item>
+    </array>
+    <string-array name="com_google_android_gms_fonts_certs_dev">
+        <item>MIIEqDCCA5CgAwIBAgIJANWFuGx90071MA0GCSqGSIb3DQEBBAUAMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEQMA4GA1UEChMHQW5kcm9pZDEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbTAeFw0wODA0MTUyMzM2NTZaFw0zNTA5MDEyMzM2NTZaMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEQMA4GA1UEChMHQW5kcm9pZDEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbTCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEBANbOLggKv+IxTdGNs8/TGFy0PTP6DHThvbbR24kT9ixcOd9W+EaBPWW+wPPkQxFYBkAVnggIlXExURaRQBi5OocLCZmhMZZ5i8zAwPc8GzRBVaQg+B0z01sxJcVMnVbhPTMEIDCaWREnX0Gh0ZhMxCsNaCGO0kMmQbIBmhXFaxMu1xUFrfBhRNgcFYwJLGqz3tEyZcQkxiRiXoMJUJQ4mniJbfj5VDHl0ZAZ0N0sGKwXrE8yjXGvMINcXSi9bZ5HFLElEMApnrK7bQIhSMIbI7iLBkjEFERHmhZAWYDkfCmSnPbLy2InlEPDj8jv9zZe0yMXMRb2gljmGgjE+G+uAYAAAA</item>
+    </string-array>
+    <string-array name="com_google_android_gms_fonts_certs_prod">
+        <item>MIIEQzCCAiugAwIBAgIJAMLgh0ZkSjCNMA0GCSqGSIb3DQEBBAUAMCMxITAfBgNVBAMTGGZvbnRzLmdzdGF0aWMuY29tLW5vdC1jYTAeFw0xNDEwMTMxMzQ3MjJaFw0yNDEwMTAxMzQ3MjJaMCMxITAfBgNVBAMTGGZvbnRzLmdzdGF0aWMuY29tLW5vdC1jYTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAHKDexK73b+D5Z5HrFnGhPXGFDM9V3TFqDmIBiK+j61rBXGcH8HcKzfLzk1BNPm9p+jmKOAaoBc/B26rTXgUGN7YfcfMDjIDQYLTpXFMlUOAvYLEuSjLKGqVNRJxeB4F+k8cSrB2UX0WYlXdx+5i2QG7mpbj95U/9x3OYzJoKrB7z8q0a1VqWDR5VRTzb0IIkSklxC8UZjnCNLCfGELqFsK+OHtfaRMaGpnGtYkJhSvCLJfuSlxjAbNJBUlQ+uc+ueAvL7oFsUiukXXc7y4KBqFgWsMiEFZJl4n9O3xbIicPKkSp3c6j4AQ7ILbQijCKBR3RW7rQ0CAwEAAaOBgzCBgDAOBgNVHQ8BAf8EBAMCAQYwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFIfV1VFPU8ycCHqt1HHY7aGGFf9xMB8GA1UdIwQYMBaAFIfV1VFPU8ycCHqt1HHY7aGGFf9xMA0GCSqGSIb3DQEBBAUAA4IBAQBc3y9zPl+fSAPmWpnWNapKH+Xq3T9RIqcFxRR5a9REr2NzObHpMBs3QZ7bUB9O+dHIxJ2YMW0apGEWTHO7JZiCkPR5I1Y+mXo3/iLidB2RNlBmZZeqH4fxv3fqA4LXb2PIEQqGi/v0FaBpOAlKBJnYjJPGnTlvUKDCKa7HwlpbGFm5TrZO3kPHv3ek5dBfXZzNxl1Ox73DIK6y7r07r0iiUGheTLMfCn+C94nU8bVU0/+JZCbW7Z2XFDCKPvNQA9kMOyXBrRMFv0ZQAR8vxMNgQPvmf3I9B3DXmEXqr/lU6iiVL8RkL3lG4jBlY8K6MCUE21OuGnZN3</item>
+    </string-array>
 </resources>
