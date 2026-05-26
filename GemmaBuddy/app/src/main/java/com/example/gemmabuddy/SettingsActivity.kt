@@ -37,6 +37,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var btnPersonality: Button
     private lateinit var tvNotificationStatus: TextView
     private lateinit var btnNotificationAccess: Button
+    private lateinit var btnStepModeBuddy: Button
+    private lateinit var btnStepModeAlways: Button
 
     private var currentIntervalIdx = 3  // default 5m
 
@@ -62,6 +64,8 @@ class SettingsActivity : AppCompatActivity() {
         btnPersonality = findViewById(R.id.btn_personality_change)
         tvNotificationStatus = findViewById(R.id.tv_notification_status)
         btnNotificationAccess = findViewById(R.id.btn_notification_access)
+        btnStepModeBuddy = findViewById(R.id.btn_step_mode_buddy)
+        btnStepModeAlways = findViewById(R.id.btn_step_mode_always)
     }
 
     private fun loadPrefs() {
@@ -79,6 +83,10 @@ class SettingsActivity : AppCompatActivity() {
 
         // Notification access status
         updateNotificationStatusUI()
+
+        // Step mode
+        val stepMode = prefs.getString(OverlayService.PREF_STEP_MODE, "1") ?: "1"
+        updateStepModeUI(stepMode)
     }
 
     private fun setupListeners() {
@@ -106,6 +114,9 @@ class SettingsActivity : AppCompatActivity() {
         btnNotificationAccess.setOnClickListener {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
+
+        btnStepModeBuddy.setOnClickListener { saveStepMode("1") }
+        btnStepModeAlways.setOnClickListener { saveStepMode("2") }
     }
 
     private fun saveSpeed(ms: Long) {
@@ -165,6 +176,37 @@ class SettingsActivity : AppCompatActivity() {
             }
             .setNegativeButton("キャンセル", null)
             .show()
+    }
+
+    private fun saveStepMode(mode: String) {
+        prefs.edit().putString(OverlayService.PREF_STEP_MODE, mode).apply()
+        updateStepModeUI(mode)
+        if (mode == "2") {
+            startService(Intent(this, StepCounterService::class.java))
+        } else {
+            stopService(Intent(this, StepCounterService::class.java))
+        }
+        Toast.makeText(
+            this,
+            if (mode == "2") "常時計測に変更しました" else "バディ起動中のみに変更しました",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun updateStepModeUI(mode: String) {
+        val isBuddy = mode == "1"
+        btnStepModeBuddy.setBackgroundResource(
+            if (isBuddy) R.drawable.bg_dark_segment_selected else R.drawable.bg_dark_segment_unselected
+        )
+        btnStepModeAlways.setBackgroundResource(
+            if (!isBuddy) R.drawable.bg_dark_segment_selected else R.drawable.bg_dark_segment_unselected
+        )
+        btnStepModeBuddy.setTextColor(
+            if (isBuddy) getColor(R.color.nr_primary) else getColor(R.color.nr_on_surface_variant)
+        )
+        btnStepModeAlways.setTextColor(
+            if (!isBuddy) getColor(R.color.nr_primary) else getColor(R.color.nr_on_surface_variant)
+        )
     }
 
     private fun updateNotificationStatusUI() {

@@ -41,7 +41,7 @@ fun Activity.setupBottomNav(activeTab: NavTab) {
                 NavTab.HISTORY -> Intent(this, MemoryActivity::class.java)
                 NavTab.SETTINGS -> Intent(this, SettingsActivity::class.java)
             }
-            intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             startActivity(intent)
             overridePendingTransition(0, 0)
         }

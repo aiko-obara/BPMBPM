@@ -1,10 +1,15 @@
 package com.example.gemmabuddy
 
-import android.app.Activity
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.media.projection.MediaProjectionManager
 import android.net.Uri
+import android.os.Build
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -36,6 +41,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dotStatus: View
     private lateinit var tvInteractions: TextView
     private lateinit var tvUptime: TextView
+    private lateinit var tvSteps: TextView
+
+    companion object {
+        private const val REQ_ACTIVITY_RECOGNITION = 101
+    }
 
     private val startTime = System.currentTimeMillis()
     private val uptimeHandler = Handler(Looper.getMainLooper())
@@ -44,15 +54,6 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { updateUI() }
 
-    private val screenCaptureLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.let { startOverlayService(it) }
-        } else {
-            Toast.makeText(this, "画面キャプチャが拒否されました", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +64,7 @@ class MainActivity : AppCompatActivity() {
         setupBottomNav(NavTab.HOME)
         updateUI()
         startUptimeCounter()
+        requestActivityRecognitionPermission()
     }
 
     override fun onResume() {
@@ -70,6 +72,7 @@ class MainActivity : AppCompatActivity() {
         updateUI()
         loadBuddyPreview()
         loadActiveBuddyFromStore()
+        refreshStepDisplay()
     }
 
     private fun loadActiveBuddyFromStore() {
@@ -101,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         dotStatus = findViewById(R.id.dot_status)
         tvInteractions = findViewById(R.id.tv_interactions)
         tvUptime = findViewById(R.id.tv_uptime)
+        tvSteps = findViewById(R.id.tv_steps)
     }
 
     private fun setupButtons() {
@@ -120,27 +124,25 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "AI MODEL NOT FOUND", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            requestScreenCapture()
+            startOverlayService()
         }
         btnStop.setOnClickListener {
-            startService(Intent(this, OverlayService::class.java).apply {
-                action = OverlayService.ACTION_STOP
-            })
+            stopService(Intent(this, OverlayService::class.java))
             updateStatusChip(false)
         }
     }
 
     private fun loadBuddyPreview() {
-        val file = File(filesDir, OverlayService.CUSTOM_CHAR_FILE)
-        if (file.exists()) {
-            val bmp = BitmapFactory.decodeFile(file.absolutePath)
-            ivBuddyPreview.setImageBitmap(bmp)
-        } else {
-            ivBuddyPreview.setImageResource(android.R.drawable.ic_menu_camera)
+        lifecycleScope.launch {
+            val file = File(filesDir, OverlayService.CUSTOM_CHAR_FILE)
+            val bmp = withContext(Dispatchers.IO) {
+                if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
+            }
+            bmp?.let { ivBuddyPreview.setImageBitmap(it) }
+                ?: ivBuddyPreview.setImageResource(android.R.drawable.ic_menu_camera)
+            val memory = withContext(Dispatchers.IO) { MemoryStore(this@MainActivity).load() }
+            tvInteractions.text = memory.recentEvents.size.toString()
         }
-        // Interaction count from memory
-        val memory = MemoryStore(this).load()
-        tvInteractions.text = memory.recentEvents.size.toString()
     }
 
     private fun startUptimeCounter() {
@@ -166,16 +168,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestScreenCapture() {
-        val mgr = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        screenCaptureLauncher.launch(mgr.createScreenCaptureIntent())
+    private fun refreshStepDisplay() {
+        val prefs = getSharedPreferences(StepCounterManager.PREFS_NAME, MODE_PRIVATE)
+        val steps = prefs.getInt(StepCounterManager.PREF_TODAY_STEPS, 0)
+        tvSteps.text = steps.toString()
     }
 
-    private fun startOverlayService(projectionData: Intent) {
+    private fun requestActivityRecognitionPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (checkSelfPermission(Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), REQ_ACTIVITY_RECOGNITION)
+            }
+        }
+    }
+
+    private fun startOverlayService() {
         val modelPath = modelDownloadManager.getModelPath() ?: return
         startForegroundService(Intent(this, OverlayService::class.java).apply {
             action = OverlayService.ACTION_START
-            putExtra(OverlayService.EXTRA_PROJECTION_DATA, projectionData)
             putExtra(OverlayService.EXTRA_MODEL_PATH, modelPath)
         })
         updateStatusChip(true)

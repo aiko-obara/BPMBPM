@@ -245,6 +245,56 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- STEP COUNTER section -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_glass_card"
+                android:padding="20dp" android:elevation="2dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+                    <View android:layout_width="4dp" android:layout_height="match_parent"
+                        android:background="@color/nr_primary" android:layout_marginRight="8dp"
+                        android:minHeight="20dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="STEP COUNTER"
+                        android:fontFamily="@font/inter" android:textSize="12sp"
+                        android:textStyle="bold" android:letterSpacing="0.08"
+                        android:textColor="@color/nr_on_surface_variant" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/nr_outline_variant" android:layout_marginBottom="16dp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="MEASUREMENT MODE"
+                    android:fontFamily="@font/inter" android:textSize="10sp"
+                    android:textStyle="bold" android:letterSpacing="0.08"
+                    android:textColor="@color/nr_on_surface_variant"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_rounded_input"
+                    android:layout_marginBottom="0dp">
+                    <Button android:id="@+id/btn_step_mode_buddy"
+                        android:layout_width="0dp" android:layout_height="match_parent"
+                        android:layout_weight="1" android:text="BUDDY ONLY"
+                        android:background="@drawable/bg_dark_segment_selected"
+                        android:textColor="@color/nr_primary"
+                        android:fontFamily="@font/inter" android:textSize="11sp"
+                        android:textStyle="bold" android:letterSpacing="0.04" />
+                    <Button android:id="@+id/btn_step_mode_always"
+                        android:layout_width="0dp" android:layout_height="match_parent"
+                        android:layout_weight="1" android:text="ALWAYS ON"
+                        android:background="@drawable/bg_dark_segment_unselected"
+                        android:textColor="@color/nr_on_surface_variant"
+                        android:fontFamily="@font/inter" android:textSize="11sp"
+                        android:textStyle="bold" android:letterSpacing="0.04" />
+                </LinearLayout>
+            </LinearLayout>
+
             <!-- TERMINATE SESSION -->
             <Button android:layout_width="match_parent" android:layout_height="52dp"
                 android:text="⊕ TERMINATE SESSION"

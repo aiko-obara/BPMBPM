@@ -29,6 +29,11 @@ data class ImportantMemoryRow(
     val text: String
 )
 
+data class StepLogRow(
+    val dayDate: String,
+    val steps: Int
+)
+
 class MemoryDao(private val db: AppDatabase) {
 
     // ─────────────────────────────────────────────
@@ -141,6 +146,28 @@ class MemoryDao(private val db: AppDatabase) {
             delete("events", null, null)
             delete("profile_snapshots", null, null)
             delete("important_memories", null, null)
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // 歩数ログ
+    // ─────────────────────────────────────────────
+
+    fun upsertStepLog(dayDate: String, steps: Int) {
+        db.writableDatabase.execSQL(
+            "INSERT INTO step_logs(day_date, steps) VALUES(?, ?) ON CONFLICT(day_date) DO UPDATE SET steps=excluded.steps",
+            arrayOf<Any>(dayDate, steps)
+        )
+    }
+
+    fun getStepLog(dayDate: String): StepLogRow? {
+        val c = db.readableDatabase.rawQuery(
+            "SELECT day_date, steps FROM step_logs WHERE day_date = ?",
+            arrayOf(dayDate)
+        )
+        return c.use {
+            if (!it.moveToFirst()) null
+            else StepLogRow(it.getString(0), it.getInt(1))
         }
     }
 }

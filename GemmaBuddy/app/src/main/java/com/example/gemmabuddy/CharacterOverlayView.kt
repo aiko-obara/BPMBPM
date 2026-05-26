@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import pl.droidsonroids.gif.GifDrawable
@@ -47,7 +48,6 @@ class CharacterOverlayView @JvmOverloads constructor(
             customBitmap = escapeFrames[escapeFrameIndex % escapeFrames.size]
             escapeFrameIndex++
             invalidate()
-            requestLayout()
             if (escapeFrameIndex < escapeFrames.size * ESCAPE_TOTAL_CYCLES) {
                 bobHandler.postDelayed(this, ESCAPE_FRAME_MS)
             } else {
@@ -63,7 +63,10 @@ class CharacterOverlayView @JvmOverloads constructor(
         escapeFrames = frames.map { scaleToFit(it) }
         escapeFrameIndex = 0
         onEscapeComplete = onComplete
+        // customBitmap を先に設定してから requestLayout() → onMeasure() が正しいサイズを得る
+        customBitmap = escapeFrames.firstOrNull()
         isEscaping = true
+        requestLayout()
         bobHandler.post(escapeRunnable)
     }
     private val bobRunnable = object : Runnable {
@@ -101,13 +104,26 @@ class CharacterOverlayView @JvmOverloads constructor(
 
     var onMoveListener: ((dx: Float, dy: Float) -> Unit)? = null
     var onTapListener: (() -> Unit)? = null
+    var onDoubleTapListener: (() -> Unit)? = null
     var onLongPressListener: (() -> Unit)? = null
-
-    private val longPressRunnable = Runnable { onLongPressListener?.invoke() }
 
     private var touchStartX = 0f
     private var touchStartY = 0f
     private var isDragging = false
+
+    private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+            if (!isDragging) onTapListener?.invoke()
+            return true
+        }
+        override fun onDoubleTap(e: MotionEvent): Boolean {
+            if (!isDragging) onDoubleTapListener?.invoke()
+            return true
+        }
+        override fun onLongPress(e: MotionEvent) {
+            if (!isDragging) onLongPressListener?.invoke()
+        }
+    })
 
     fun setGifDrawable(drawable: GifDrawable) {
         bobHandler.removeCallbacks(bobRunnable)
@@ -222,35 +238,27 @@ class CharacterOverlayView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        gestureDetector.onTouchEvent(event)
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 touchStartX = event.rawX
                 touchStartY = event.rawY
                 isDragging = false
-                bobHandler.postDelayed(longPressRunnable, LONG_PRESS_MS)
-                return true
             }
             MotionEvent.ACTION_MOVE -> {
                 val dx = event.rawX - touchStartX
                 val dy = event.rawY - touchStartY
                 if (!isDragging && (abs(dx) > 10 || abs(dy) > 10)) {
                     isDragging = true
-                    bobHandler.removeCallbacks(longPressRunnable)
                 }
                 if (isDragging) {
                     onMoveListener?.invoke(dx, dy)
                     touchStartX = event.rawX
                     touchStartY = event.rawY
                 }
-                return true
-            }
-            MotionEvent.ACTION_UP -> {
-                bobHandler.removeCallbacks(longPressRunnable)
-                if (!isDragging) onTapListener?.invoke()
-                return true
             }
         }
-        return false
+        return true
     }
 
     override fun verifyDrawable(who: android.graphics.drawable.Drawable): Boolean {
@@ -260,12 +268,10 @@ class CharacterOverlayView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         bobHandler.removeCallbacks(bobRunnable)
-        bobHandler.removeCallbacks(longPressRunnable)
         bobHandler.removeCallbacks(escapeRunnable)
     }
 
     companion object {
         const val CUSTOM_CHAR_MAX_PX = 300
-        const val LONG_PRESS_MS = 600L
     }
 }

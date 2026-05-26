@@ -40,20 +40,34 @@ class AppDatabase(context: Context) : SQLiteOpenHelper(
                 text TEXT    NOT NULL UNIQUE
             )"""
         )
+
+        // 歩数ログ（日単位）
+        db.execSQL(
+            """CREATE TABLE step_logs (
+                id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                day_date TEXT    NOT NULL UNIQUE,
+                steps    INTEGER NOT NULL DEFAULT 0
+            )"""
+        )
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS events")
-        db.execSQL("DROP TABLE IF EXISTS profile_snapshots")
-        db.execSQL("DROP TABLE IF EXISTS important_memories")
-        onCreate(db)
+        if (oldVersion < 2) {
+            db.execSQL(
+                """CREATE TABLE IF NOT EXISTS step_logs (
+                    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                    day_date TEXT    NOT NULL UNIQUE,
+                    steps    INTEGER NOT NULL DEFAULT 0
+                )"""
+            )
+        }
     }
 
     fun memoryDao(): MemoryDao = MemoryDao(this)
 
     companion object {
         private const val DB_NAME = "gemmabuddy.db"
-        private const val DB_VERSION = 1
+        private const val DB_VERSION = 2
 
         @Volatile private var instance: AppDatabase? = null
 
