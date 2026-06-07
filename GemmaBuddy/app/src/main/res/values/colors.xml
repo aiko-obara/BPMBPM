@@ -36,6 +36,12 @@
     <color name="nr_cyber_green">#4ae183</color>
     <color name="nr_red">#c4041a</color>
     <color name="nr_error">#ffb4ab</color>
+    <color name="nr_accent_yellow">#ffcc00</color>
+
+    <!-- Widget / display surfaces -->
+    <color name="nr_widget_bg">#1a1b2e</color>
+    <color name="nr_widget_stroke">#2e3350</color>
+    <color name="nr_buddy_display_bg">#0d1117</color>
 
     <!-- Legacy (kept for overlay bubble) -->
     <color name="nr_shadow">#191c1d</color>

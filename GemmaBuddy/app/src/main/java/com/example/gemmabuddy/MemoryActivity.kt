@@ -40,13 +40,13 @@ class MemoryActivity : AppCompatActivity() {
         tvProfile.text = if (memoryStore.exists()) {
             mem.toSystemDigest()
         } else {
-            "まだ記憶がありません。キャラクターを起動すると観察が始まります。"
+            getString(R.string.history_no_memory)
         }
 
         // 大切な思い出
         val importantList = memoryStore.loadImportantMemories()
         tvImportant.text = if (importantList.isEmpty()) {
-            "（大切な思い出はまだありません）"
+            getString(R.string.history_no_important)
         } else {
             val dateFmt = SimpleDateFormat("yyyy/MM", Locale.JAPAN)
             importantList.joinToString("\n") { m ->
@@ -57,7 +57,7 @@ class MemoryActivity : AppCompatActivity() {
         // 過去30日間の概要
         val monthGroups = memoryStore.loadMonthEvents()
         tvMonth.text = if (monthGroups.isEmpty()) {
-            "（記録なし）"
+            getString(R.string.history_no_records)
         } else {
             monthGroups.joinToString("\n") { g ->
                 "${g.dayDate}  ${g.count}件"
@@ -67,7 +67,7 @@ class MemoryActivity : AppCompatActivity() {
         // 今日のイベント
         val df = SimpleDateFormat("HH:mm", Locale.JAPAN)
         tvEvents.text = if (mem.recentEvents.isEmpty()) {
-            "（本日の観察データなし）"
+            getString(R.string.history_no_logs)
         } else {
             mem.recentEvents.reversed().joinToString("\n") { ev ->
                 val time = if (ev.ts > 0) df.format(Date(ev.ts)) else "--:--"
@@ -78,14 +78,18 @@ class MemoryActivity : AppCompatActivity() {
 
     private fun confirmReset() {
         AlertDialog.Builder(this)
-            .setTitle("記憶をリセット")
-            .setMessage("キャラクターの記憶を全て消去します。元には戻せません。よろしいですか？")
-            .setPositiveButton("リセット") { _, _ ->
+            .setTitle(R.string.dialog_reset_title)
+            .setMessage(R.string.dialog_reset_message)
+            .setPositiveButton(R.string.action_reset) { _, _ ->
                 memoryStore.reset()
-                Toast.makeText(this, "記憶をリセットしました", Toast.LENGTH_SHORT).show()
+                // 稼働中サービスの in-memory 記憶も破棄させる（書き戻し防止）
+                sendBroadcast(android.content.Intent(OverlayService.ACTION_RESET_MEMORY).apply {
+                    `package` = packageName
+                })
+                Toast.makeText(this, R.string.toast_memory_reset, Toast.LENGTH_SHORT).show()
                 render()
             }
-            .setNegativeButton("キャンセル", null)
+            .setNegativeButton(R.string.action_cancel, null)
             .show()
     }
 }

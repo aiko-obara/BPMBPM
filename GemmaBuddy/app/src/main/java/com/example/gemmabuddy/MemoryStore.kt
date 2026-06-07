@@ -167,6 +167,35 @@ class MemoryStore(private val context: Context) {
 
     fun loadMonthEvents(): List<DayGroupRow> = dao.getRecentDayGroups(dateNDaysAgo(30))
 
+    /** ユーザー操作などから「大切な思い出」を直接追加する（UNIQUE(text) で重複排除）。 */
+    fun addImportantMemory(text: String) {
+        if (text.isBlank()) return
+        dao.upsertImportantMemory(System.currentTimeMillis(), text.trim().take(120))
+    }
+
+    /** 直近7日間の歩数サマリー。データが無ければ null。 */
+    fun weeklyStepSummary(): WeeklyStepSummary? {
+        val logs = dao.getStepLogsSince(dateNDaysAgo(7))
+        if (logs.isEmpty()) return null
+        val total = logs.sumOf { it.steps }
+        val best = logs.maxByOrNull { it.steps }!!
+        return WeeklyStepSummary(
+            total = total,
+            average = total / logs.size,
+            daysWithData = logs.size,
+            bestDay = best.dayDate,
+            bestSteps = best.steps
+        )
+    }
+
+    data class WeeklyStepSummary(
+        val total: Int,
+        val average: Int,
+        val daysWithData: Int,
+        val bestDay: String,
+        val bestSteps: Int
+    )
+
     // ─────────────────────────────────────────────
     // Private helpers
     // ─────────────────────────────────────────────

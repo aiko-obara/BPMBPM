@@ -106,6 +106,8 @@ class CharacterOverlayView @JvmOverloads constructor(
     var onTapListener: (() -> Unit)? = null
     var onDoubleTapListener: (() -> Unit)? = null
     var onLongPressListener: (() -> Unit)? = null
+    /** ドラッグして指を離した瞬間の画面座標（rawX, rawY）を通知する。 */
+    var onDragReleaseListener: ((rawX: Float, rawY: Float) -> Unit)? = null
 
     private var touchStartX = 0f
     private var touchStartY = 0f
@@ -256,6 +258,9 @@ class CharacterOverlayView @JvmOverloads constructor(
                     touchStartX = event.rawX
                     touchStartY = event.rawY
                 }
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (isDragging) onDragReleaseListener?.invoke(event.rawX, event.rawY)
             }
         }
         return true

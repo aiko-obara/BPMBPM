@@ -1,6 +1,7 @@
 package com.example.gemmabuddy
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.util.Log
 import org.json.JSONArray
@@ -14,7 +15,8 @@ data class BuddyEntry(
     val templateType: String,
     val fileName: String,
     val createdAt: Long,
-    val isActive: Boolean = false
+    val isActive: Boolean = false,
+    val defaultPersonalityId: String? = null
 )
 
 /**
@@ -91,10 +93,11 @@ class BuddyStore(private val context: Context) {
 
     /** 指定 id のキャラをアクティブ化し、custom_character*.png を更新する。 */
     fun setActive(id: String) {
+        val active: BuddyEntry
         synchronized(lock) {
             val entries = loadIndex().map { it.copy(isActive = it.id == id) }
             saveIndex(entries)
-            val active = entries.find { it.isActive } ?: return
+            active = entries.find { it.isActive } ?: return
             val src = File(dir, active.fileName)
             if (src.exists()) {
                 src.copyTo(File(context.filesDir, OverlayService.CUSTOM_CHAR_FILE), overwrite = true)
@@ -103,6 +106,31 @@ class BuddyStore(private val context: Context) {
             val hasSpeaking = File(dir, "${active.id}_speaking.png").exists()
             copyExtraFramesToActive(active.id, hasNormal2, hasSpeaking)
         }
+        // バディに紐付いた性格があれば追従させる
+        applyPersonalityIfSet(active)
+    }
+
+    /** 指定 id のキャラに性格を紐付ける。アクティブなら即座に反映する。 */
+    fun setPersonality(id: String, personalityId: String) {
+        val updated: BuddyEntry
+        synchronized(lock) {
+            val entries = loadIndex().map {
+                if (it.id == id) it.copy(defaultPersonalityId = personalityId) else it
+            }
+            saveIndex(entries)
+            updated = entries.find { it.id == id } ?: return
+        }
+        if (updated.isActive) applyPersonalityIfSet(updated)
+    }
+
+    /** entry.defaultPersonalityId を端末の性格設定へ反映し、稼働中サービスに通知する。 */
+    private fun applyPersonalityIfSet(entry: BuddyEntry) {
+        val personalityId = entry.defaultPersonalityId ?: return
+        val prefs = context.getSharedPreferences(OverlayService.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(BuddyPersonality.PREF_KEY, personalityId).apply()
+        context.sendBroadcast(Intent(OverlayService.ACTION_RELOAD_PERSONALITY).apply {
+            `package` = context.packageName
+        })
     }
 
     /** 指定 id のキャラを削除する。アクティブだった場合は次の候補をアクティブ化。 */
@@ -177,7 +205,8 @@ class BuddyStore(private val context: Context) {
                     templateType = b.optString("templateType", "HUMAN"),
                     fileName = b.getString("fileName"),
                     createdAt = b.getLong("createdAt"),
-                    isActive = b.getString("id") == activeId
+                    isActive = b.getString("id") == activeId,
+                    defaultPersonalityId = b.optString("defaultPersonalityId", "").ifBlank { null }
                 )
             }
         } catch (e: Exception) {
@@ -199,6 +228,7 @@ class BuddyStore(private val context: Context) {
                             put("templateType", e.templateType)
                             put("fileName", e.fileName)
                             put("createdAt", e.createdAt)
+                            e.defaultPersonalityId?.let { put("defaultPersonalityId", it) }
                         })
                     }
                 })

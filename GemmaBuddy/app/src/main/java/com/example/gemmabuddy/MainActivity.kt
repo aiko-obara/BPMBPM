@@ -3,6 +3,7 @@ package com.example.gemmabuddy
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
@@ -32,6 +33,7 @@ class MainActivity : AppCompatActivity() {
     // Views
     private lateinit var btnStart: Button
     private lateinit var btnStop: Button
+    private lateinit var btnBattle: Button
     private lateinit var btnOverlayPermission: Button
     private lateinit var btnDownloadModel: Button
     private lateinit var btnCopyModel: Button
@@ -45,10 +47,23 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val REQ_ACTIVITY_RECOGNITION = 101
+        private const val PREVIEW_INTERVAL_MS = 2_000L
     }
 
     private val startTime = System.currentTimeMillis()
     private val uptimeHandler = Handler(Looper.getMainLooper())
+
+    private val previewHandler = Handler(Looper.getMainLooper())
+    private var previewFrames: List<Bitmap> = emptyList()
+    private var previewFrameIndex = 0
+    private val previewRunnable = object : Runnable {
+        override fun run() {
+            if (previewFrames.size < 2) return
+            previewFrameIndex = (previewFrameIndex + 1) % previewFrames.size
+            ivBuddyPreview.setImageBitmap(previewFrames[previewFrameIndex])
+            previewHandler.postDelayed(this, PREVIEW_INTERVAL_MS)
+        }
+    }
 
     private val overlayPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -70,31 +85,65 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateUI()
-        loadBuddyPreview()
-        loadActiveBuddyFromStore()
+        loadAndStartPreview()
         refreshStepDisplay()
     }
 
-    private fun loadActiveBuddyFromStore() {
-        val store = BuddyStore(this)
-        val active = store.getActive() ?: return
-        val file = store.getFile(active)
-        if (file.exists()) {
-            val bmp = android.graphics.BitmapFactory.decodeFile(file.absolutePath)
-            ivBuddyPreview.setImageBitmap(bmp)
-            // 名前フィールドがあれば更新
-            findViewById<TextView>(R.id.tv_buddy_name)?.text = active.name
+    override fun onPause() {
+        super.onPause()
+        stopPreviewCycle()
+    }
+
+    private fun loadAndStartPreview() {
+        stopPreviewCycle()
+        lifecycleScope.launch {
+            val frames = withContext(Dispatchers.IO) {
+                listOfNotNull(
+                    File(filesDir, OverlayService.CUSTOM_CHAR_FILE)
+                        .takeIf { it.exists() }
+                        ?.let { BitmapFactory.decodeFile(it.absolutePath) },
+                    File(filesDir, BuddyStore.CUSTOM_CHAR_NORMAL2_FILE)
+                        .takeIf { it.exists() }
+                        ?.let { BitmapFactory.decodeFile(it.absolutePath) },
+                    File(filesDir, BuddyStore.CUSTOM_CHAR_SPEAKING_FILE)
+                        .takeIf { it.exists() }
+                        ?.let { BitmapFactory.decodeFile(it.absolutePath) }
+                )
+            }
+            if (frames.isEmpty()) {
+                ivBuddyPreview.setImageResource(R.drawable.ic_buddy_placeholder)
+            } else {
+                previewFrames = frames
+                previewFrameIndex = 0
+                ivBuddyPreview.setImageBitmap(frames[0])
+                BuddyStore(this@MainActivity).getActive()?.name
+                    ?.let { findViewById<TextView>(R.id.tv_buddy_name)?.text = it }
+                startPreviewCycle()
+            }
+            val memory = withContext(Dispatchers.IO) { MemoryStore(this@MainActivity).load() }
+            tvInteractions.text = memory.recentEvents.size.toString()
         }
+    }
+
+    private fun startPreviewCycle() {
+        if (previewFrames.size < 2) return
+        previewHandler.postDelayed(previewRunnable, PREVIEW_INTERVAL_MS)
+    }
+
+    private fun stopPreviewCycle() {
+        previewHandler.removeCallbacks(previewRunnable)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         uptimeHandler.removeCallbacksAndMessages(null)
+        stopPreviewCycle()
     }
 
     private fun bindViews() {
         btnStart = findViewById(R.id.btn_start)
         btnStop = findViewById(R.id.btn_stop)
+        btnBattle = findViewById(R.id.btn_battle)
         btnOverlayPermission = findViewById(R.id.btn_overlay_permission)
         btnDownloadModel = findViewById(R.id.btn_download_model)
         btnCopyModel = findViewById(R.id.btn_copy_model)
@@ -117,11 +166,11 @@ class MainActivity : AppCompatActivity() {
         btnDownloadModel.setOnClickListener { startModelDownload() }
         btnStart.setOnClickListener {
             if (!Settings.canDrawOverlays(this)) {
-                Toast.makeText(this, "OVERLAY PERMISSION REQUIRED", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.toast_overlay_required, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             if (!modelDownloadManager.isModelAvailable()) {
-                Toast.makeText(this, "AI MODEL NOT FOUND", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.toast_model_not_found, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             startOverlayService()
@@ -130,18 +179,13 @@ class MainActivity : AppCompatActivity() {
             stopService(Intent(this, OverlayService::class.java))
             updateStatusChip(false)
         }
-    }
-
-    private fun loadBuddyPreview() {
-        lifecycleScope.launch {
-            val file = File(filesDir, OverlayService.CUSTOM_CHAR_FILE)
-            val bmp = withContext(Dispatchers.IO) {
-                if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
+        btnBattle.setOnClickListener {
+            if (BuddyStore(this).getActive() == null) {
+                Toast.makeText(this, R.string.toast_need_buddy, Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, CharacterGenerationActivity::class.java))
+            } else {
+                startActivity(Intent(this, BattleActivity::class.java))
             }
-            bmp?.let { ivBuddyPreview.setImageBitmap(it) }
-                ?: ivBuddyPreview.setImageResource(android.R.drawable.ic_menu_camera)
-            val memory = withContext(Dispatchers.IO) { MemoryStore(this@MainActivity).load() }
-            tvInteractions.text = memory.recentEvents.size.toString()
         }
     }
 
@@ -160,10 +204,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateStatusChip(active: Boolean) {
         if (active) {
-            tvStatusText.text = "BUDDY ACTIVE"
+            tvStatusText.text = getString(R.string.main_status_active)
             dotStatus.setBackgroundColor(getColor(R.color.nr_cyber_green))
         } else {
-            tvStatusText.text = "OFFLINE"
+            tvStatusText.text = getString(R.string.main_status_offline)
             dotStatus.setBackgroundColor(getColor(R.color.nr_on_surface_variant))
         }
     }
@@ -189,7 +233,7 @@ class MainActivity : AppCompatActivity() {
             putExtra(OverlayService.EXTRA_MODEL_PATH, modelPath)
         })
         updateStatusChip(true)
-        Toast.makeText(this, "SESSION STARTED", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.toast_session_started, Toast.LENGTH_SHORT).show()
     }
 
     private fun updateUI() {
@@ -201,7 +245,7 @@ class MainActivity : AppCompatActivity() {
         // Show permission button only if needed
         if (!hasOverlay) {
             btnOverlayPermission.visibility = View.VISIBLE
-            btnOverlayPermission.text = "GRANT OVERLAY PERMISSION"
+            btnOverlayPermission.text = getString(R.string.main_grant_overlay)
         } else {
             btnOverlayPermission.visibility = View.GONE
         }
@@ -211,7 +255,7 @@ class MainActivity : AppCompatActivity() {
             ModelDownloadManager.ModelSource.NONE -> {
                 btnDownloadModel.visibility = View.VISIBLE
                 btnDownloadModel.isEnabled = true
-                btnDownloadModel.text = "DOWNLOAD AI MODEL"
+                btnDownloadModel.text = getString(R.string.main_download_model)
                 btnCopyModel.visibility = View.GONE
             }
             ModelDownloadManager.ModelSource.EXTERNAL_NEEDS_COPY -> {
@@ -226,7 +270,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnStart.isEnabled = hasOverlay && hasModel
-        loadBuddyPreview()
     }
 
     private fun startModelCopy() {
@@ -237,14 +280,14 @@ class MainActivity : AppCompatActivity() {
             onSuccess = {
                 runOnUiThread {
                     progressBar.visibility = View.GONE
-                    Toast.makeText(this, "MODEL READY", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.toast_model_ready, Toast.LENGTH_SHORT).show()
                     updateUI()
                 }
             },
             onFailure = { msg ->
                 runOnUiThread {
                     progressBar.visibility = View.GONE
-                    Toast.makeText(this, "COPY FAILED: $msg", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.toast_copy_failed, msg), Toast.LENGTH_LONG).show()
                     updateUI()
                 }
             }
@@ -259,7 +302,7 @@ class MainActivity : AppCompatActivity() {
             onSuccess = {
                 runOnUiThread {
                     progressBar.visibility = View.GONE
-                    Toast.makeText(this, "DOWNLOAD COMPLETE", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.toast_download_complete, Toast.LENGTH_SHORT).show()
                     updateUI()
                 }
             },
@@ -267,7 +310,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     progressBar.visibility = View.GONE
                     btnDownloadModel.isEnabled = true
-                    Toast.makeText(this, "DOWNLOAD FAILED: $msg", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.toast_download_failed, msg), Toast.LENGTH_LONG).show()
                     updateUI()
                 }
             }

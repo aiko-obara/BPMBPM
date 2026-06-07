@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 通知ステータスバー用モノクロアイコン（白 tint 前提のシルエット） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFF">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M7,4 H17 V20 H7 Z M7,4 H17 V6 H7 Z" />
+    <!-- eyes (cut-out look via background color) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M9,9 H11 V12 H9 Z M13,9 H15 V12 H13 Z" />
+</vector>

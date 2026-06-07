@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/nr_dark_surface">
+
+    <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/nr_dark_surface"
+    android:fitsSystemWindows="true"
+    android:padding="16dp">
+
+    <!-- Enemy status -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_dark_card" android:padding="12dp">
+        <TextView android:id="@+id/tv_enemy_name"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="ENEMY"
+            android:fontFamily="@font/space_grotesk" android:textSize="16sp"
+            android:textStyle="bold" android:textColor="@color/nr_dark_on_surface" />
+        <ProgressBar android:id="@+id/pb_enemy_hp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent" android:layout_height="10dp"
+            android:layout_marginTop="4dp"
+            android:max="100" android:progress="100"
+            android:progressTint="@color/nr_red"
+            android:progressBackgroundTint="@color/nr_dark_container_high" />
+    </LinearLayout>
+
+    <!-- Battlefield -->
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ImageView android:id="@+id/iv_enemy"
+            android:layout_width="150dp" android:layout_height="150dp"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="16dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Enemy" />
+
+        <TextView android:id="@+id/tv_enemy_damage"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="40dp" android:layout_marginEnd="60dp"
+            android:fontFamily="@font/space_grotesk" android:textSize="28sp"
+            android:textStyle="bold" android:textColor="@color/nr_accent_yellow"
+            android:visibility="invisible" />
+
+        <ImageView android:id="@+id/iv_player"
+            android:layout_width="160dp" android:layout_height="160dp"
+            android:layout_gravity="bottom|start"
+            android:layout_marginBottom="16dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Player" />
+
+        <TextView android:id="@+id/tv_player_damage"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:layout_marginBottom="80dp" android:layout_marginStart="60dp"
+            android:fontFamily="@font/space_grotesk" android:textSize="28sp"
+            android:textStyle="bold" android:textColor="@color/nr_red"
+            android:visibility="invisible" />
+
+        <!-- ヒットエフェクト（外部生成の透過GIFを命中点で再生） -->
+        <ImageView android:id="@+id/iv_effect"
+            android:layout_width="140dp" android:layout_height="140dp"
+            android:layout_gravity="top|start"
+            android:scaleType="fitCenter"
+            android:contentDescription="@null"
+            android:visibility="invisible" />
+    </FrameLayout>
+
+    <!-- Player status -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_dark_card" android:padding="12dp"
+        android:layout_marginBottom="8dp">
+        <TextView android:id="@+id/tv_player_name"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="BUDDY"
+            android:fontFamily="@font/space_grotesk" android:textSize="16sp"
+            android:textStyle="bold" android:textColor="@color/nr_cyan" />
+        <ProgressBar android:id="@+id/pb_player_hp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent" android:layout_height="10dp"
+            android:layout_marginTop="4dp"
+            android:max="100" android:progress="100"
+            android:progressTint="@color/nr_cyber_green"
+            android:progressBackgroundTint="@color/nr_dark_container_high" />
+    </LinearLayout>
+
+    <!-- Battle log -->
+    <TextView android:id="@+id/tv_battle_log"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:minLines="2" android:maxLines="2" android:gravity="center_vertical"
+        android:background="@drawable/bg_dark_card" android:padding="12dp"
+        android:fontFamily="@font/inter" android:textSize="13sp"
+        android:textColor="@color/nr_dark_on_surface"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Commands -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="52dp"
+        android:orientation="horizontal">
+        <Button android:id="@+id/btn_attack"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:layout_marginEnd="6dp"
+            android:text="@string/battle_attack"
+            android:background="@drawable/bg_primary_button"
+            android:textColor="@color/nr_on_primary"
+            android:fontFamily="@font/inter" android:textSize="12sp"
+            android:textStyle="bold" />
+        <Button android:id="@+id/btn_skill"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:layout_marginEnd="6dp"
+            android:text="@string/battle_skill"
+            android:background="@drawable/bg_secondary_button"
+            android:textColor="@color/nr_primary"
+            android:fontFamily="@font/inter" android:textSize="12sp"
+            android:textStyle="bold" />
+        <Button android:id="@+id/btn_defend"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/battle_defend"
+            android:background="@drawable/bg_secondary_button"
+            android:textColor="@color/nr_primary"
+            android:fontFamily="@font/inter" android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+    </LinearLayout>
+
+    <com.example.gemmabuddy.BattleTransitionView
+        android:id="@+id/battle_transition"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</FrameLayout>

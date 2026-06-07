@@ -170,4 +170,19 @@ class MemoryDao(private val db: AppDatabase) {
             else StepLogRow(it.getString(0), it.getInt(1))
         }
     }
+
+    /** sinceDate 以降の歩数ログを古い順で返す（週次サマリー用） */
+    fun getStepLogsSince(sinceDate: String): List<StepLogRow> {
+        val c = db.readableDatabase.rawQuery(
+            "SELECT day_date, steps FROM step_logs WHERE day_date >= ? ORDER BY day_date ASC",
+            arrayOf(sinceDate)
+        )
+        return c.use { cur ->
+            buildList {
+                while (cur.moveToNext()) {
+                    add(StepLogRow(cur.getString(0), cur.getInt(1)))
+                }
+            }
+        }
+    }
 }

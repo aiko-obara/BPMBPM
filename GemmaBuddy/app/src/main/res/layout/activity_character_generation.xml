@@ -20,14 +20,14 @@
                 android:layout_marginBottom="24dp">
 
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="GET A BUDDY"
+                    android:text="@string/buddies_get_a_buddy"
                     android:fontFamily="@font/space_grotesk" android:textSize="20sp"
                     android:textStyle="bold" android:textColor="@color/nr_on_surface"
                     android:layout_marginBottom="16dp" />
 
                 <!-- キャラ選択サムネイル -->
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="SELECT CHARACTER"
+                    android:text="@string/buddies_select_character"
                     android:fontFamily="@font/inter" android:textSize="10sp"
                     android:textStyle="bold" android:letterSpacing="0.08"
                     android:textColor="@color/nr_on_surface_variant"
@@ -51,7 +51,7 @@
                     <TextView android:id="@+id/tv_empty_hint"
                         android:layout_width="match_parent" android:layout_height="200dp"
                         android:gravity="center"
-                        android:text="キャラクター画像がありません\nassets/characters/ に PNG を追加してください"
+                        android:text="@string/buddies_empty_hint"
                         android:fontFamily="@font/inter" android:textSize="13sp"
                         android:textColor="@color/nr_on_surface_variant"
                         android:visibility="gone" />
@@ -80,8 +80,8 @@
 
                 <!-- REROLL -->
                 <Button android:id="@+id/btn_roll"
-                    android:layout_width="match_parent" android:layout_height="52dp"
-                    android:text="⬡  REROLL"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:text="@string/buddies_reroll"
                     android:background="@drawable/bg_secondary_button"
                     android:textColor="@color/nr_primary"
                     android:fontFamily="@font/inter" android:textSize="13sp"
@@ -90,8 +90,8 @@
 
                 <!-- DEPLOY -->
                 <Button android:id="@+id/btn_deploy"
-                    android:layout_width="match_parent" android:layout_height="52dp"
-                    android:text="DEPLOY BUDDY"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:text="@string/buddies_deploy"
                     android:background="@drawable/bg_primary_button"
                     android:textColor="@color/nr_on_primary"
                     android:fontFamily="@font/inter" android:textSize="13sp"
@@ -102,14 +102,14 @@
 
             <!-- ACTIVE BUDDIES -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="ACTIVE BUDDIES"
+                android:text="@string/buddies_active"
                 android:fontFamily="@font/space_grotesk" android:textSize="20sp"
                 android:textStyle="bold" android:textColor="@color/nr_on_surface"
                 android:layout_marginBottom="4dp" />
 
             <TextView android:id="@+id/tv_empty_buddies"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="No buddies yet. Deploy one above!"
+                android:text="@string/buddies_empty_list"
                 android:fontFamily="@font/inter" android:textSize="13sp"
                 android:textColor="@color/nr_on_surface_variant"
                 android:layout_marginBottom="12dp"

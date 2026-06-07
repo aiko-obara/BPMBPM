@@ -137,13 +137,13 @@ class CharacterGenerationActivity : AppCompatActivity() {
             setPadding(48, 24, 48, 24)
         }
         AlertDialog.Builder(this)
-            .setTitle("バディに名前をつける")
+            .setTitle(R.string.dialog_name_buddy_title)
             .setView(input)
-            .setPositiveButton("DEPLOY") { _, _ ->
+            .setPositiveButton(R.string.action_deploy) { _, _ ->
                 val name = input.text.toString().trim().ifBlank { autoName }
                 deployBuddy(frames, name, folder)
             }
-            .setNegativeButton("キャンセル", null)
+            .setNegativeButton(R.string.action_cancel, null)
             .show()
     }
 
@@ -155,10 +155,10 @@ class CharacterGenerationActivity : AppCompatActivity() {
                 speakingBitmap = frames.speaking
             )
             sendBroadcast(Intent(OverlayService.ACTION_RELOAD_CHARACTER))
-            Toast.makeText(this, "${entry.name} をデプロイしました！", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_deploy_done, entry.name), Toast.LENGTH_SHORT).show()
             refreshBuddyList()
         } catch (e: Exception) {
-            Toast.makeText(this, "保存に失敗しました", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.toast_save_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -183,8 +183,14 @@ class CharacterGenerationActivity : AppCompatActivity() {
             }
 
             card.findViewById<TextView>(R.id.tv_buddy_name).text = entry.name
+            val personalityLabel = entry.defaultPersonalityId
+                ?.let { id -> BuddyPersonality.all.find { it.id == id } }
+                ?.let { "  •  ${it.emoji}${it.name}" } ?: ""
             card.findViewById<TextView>(R.id.tv_buddy_template).text =
-                "${BuddyImageProvider.displayName(entry.templateType)}  •  ${formatDate(entry.createdAt)}"
+                "${BuddyImageProvider.displayName(entry.templateType)}  •  ${formatDate(entry.createdAt)}$personalityLabel"
+
+            // カード長押しで性格を割り当て
+            card.setOnLongClickListener { showPersonalityPicker(entry); true }
 
             val chipActive = card.findViewById<LinearLayout>(R.id.chip_active)
             val btnSwitch = card.findViewById<Button>(R.id.btn_switch)
@@ -205,24 +211,47 @@ class CharacterGenerationActivity : AppCompatActivity() {
         }
     }
 
+    private fun showPersonalityPicker(entry: BuddyEntry) {
+        val items = BuddyPersonality.all.map { "${it.emoji} ${it.name}" }.toTypedArray()
+        val currentIdx = BuddyPersonality.all
+            .indexOfFirst { it.id == entry.defaultPersonalityId }.coerceAtLeast(0)
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dialog_buddy_personality_title, entry.name))
+            .setSingleChoiceItems(items, currentIdx) { dialog, which ->
+                val selected = BuddyPersonality.all[which]
+                buddyStore.setPersonality(entry.id, selected.id)
+                val label = "${selected.emoji} ${selected.name}"
+                val msg = if (entry.isActive) {
+                    getString(R.string.personality_set_active, label)
+                } else {
+                    getString(R.string.personality_set_inactive, label)
+                }
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                refreshBuddyList()
+            }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
+    }
+
     private fun switchBuddy(id: String) {
         buddyStore.setActive(id)
         sendBroadcast(Intent(OverlayService.ACTION_RELOAD_CHARACTER))
-        Toast.makeText(this, "バディを切り替えました", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.toast_switched, Toast.LENGTH_SHORT).show()
         refreshBuddyList()
     }
 
     private fun confirmDelete(entry: BuddyEntry) {
         AlertDialog.Builder(this)
-            .setTitle("${entry.name} を削除")
-            .setMessage("このバディを削除しますか？この操作は元に戻せません。")
-            .setPositiveButton("DELETE") { _, _ ->
+            .setTitle(getString(R.string.dialog_delete_title, entry.name))
+            .setMessage(R.string.dialog_delete_message)
+            .setPositiveButton(R.string.action_delete) { _, _ ->
                 buddyStore.delete(entry.id)
                 sendBroadcast(Intent(OverlayService.ACTION_RELOAD_CHARACTER))
-                Toast.makeText(this, "${entry.name} を削除しました", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.toast_deleted, entry.name), Toast.LENGTH_SHORT).show()
                 refreshBuddyList()
             }
-            .setNegativeButton("キャンセル", null)
+            .setNegativeButton(R.string.action_cancel, null)
             .show()
     }
 

@@ -22,7 +22,7 @@
                 android:text="⌂" android:textSize="22sp" android:textColor="@color/nr_on_surface_variant" />
             <TextView android:id="@+id/nav_home_label"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Home" android:fontFamily="@font/inter"
+                android:text="@string/nav_home" android:fontFamily="@font/inter"
                 android:textSize="11sp" android:textColor="@color/nr_on_surface_variant" />
         </LinearLayout>
 
@@ -35,7 +35,7 @@
                 android:text="⬡" android:textSize="22sp" android:textColor="@color/nr_on_surface_variant" />
             <TextView android:id="@+id/nav_buddies_label"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Buddies" android:fontFamily="@font/inter"
+                android:text="@string/nav_buddies" android:fontFamily="@font/inter"
                 android:textSize="11sp" android:textColor="@color/nr_on_surface_variant" />
         </LinearLayout>
 
@@ -48,7 +48,7 @@
                 android:text="◷" android:textSize="22sp" android:textColor="@color/nr_on_surface_variant" />
             <TextView android:id="@+id/nav_history_label"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="History" android:fontFamily="@font/inter"
+                android:text="@string/nav_history" android:fontFamily="@font/inter"
                 android:textSize="11sp" android:textColor="@color/nr_on_surface_variant" />
         </LinearLayout>
 
@@ -61,7 +61,7 @@
                 android:text="⚙" android:textSize="22sp" android:textColor="@color/nr_on_surface_variant" />
             <TextView android:id="@+id/nav_settings_label"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Settings" android:fontFamily="@font/inter"
+                android:text="@string/nav_settings" android:fontFamily="@font/inter"
                 android:textSize="11sp" android:textColor="@color/nr_on_surface_variant" />
         </LinearLayout>
     </LinearLayout>

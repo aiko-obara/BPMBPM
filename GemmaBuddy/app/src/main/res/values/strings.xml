@@ -1,8 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GemmaBuddy</string>
-    <string name="pref_interval_title">画面監視の間隔</string>
-    <string name="pref_interval_summary">Gemma4が画面を確認する頻度</string>
-    <string name="pref_api_key_title">OpenAI API キー</string>
-    <string name="pref_api_key_summary">キャラクター生成に使用します</string>
+
+    <!-- Legacy preferences screen -->
+    <string name="pref_interval_title">Screen monitoring interval</string>
+    <string name="pref_interval_summary">How often Gemma4 checks the screen</string>
+    <string name="pref_api_key_title">OpenAI API key</string>
+    <string name="pref_api_key_summary">Used for character generation</string>
+
+    <!-- Splash -->
+    <string name="splash_initializing">INITIALIZING COGNITIVE MATRIX...</string>
+
+    <!-- Main / Home -->
+    <string name="main_status_offline">OFFLINE</string>
+    <string name="main_status_active">BUDDY ACTIVE</string>
+    <string name="main_chip_ready">READY</string>
+    <string name="main_start_session">▶  START SESSION</string>
+    <string name="main_terminate_session">□  TERMINATE SESSION</string>
+    <string name="main_uptime_label">⏱ SYSTEM UPTIME</string>
+    <string name="main_interactions_label">💬 INTERACTIONS</string>
+    <string name="main_interactions_desc">Total messages exchanged this cycle.</string>
+    <string name="main_steps_label">👟 TODAY\'S STEPS</string>
+    <string name="main_steps_desc">Steps today</string>
+    <string name="main_grant_overlay">GRANT OVERLAY PERMISSION</string>
+    <string name="main_download_model">DOWNLOAD AI MODEL</string>
+    <string name="main_copy_model">COPY MODEL TO INTERNAL</string>
+    <string name="toast_overlay_required">OVERLAY PERMISSION REQUIRED</string>
+    <string name="toast_model_not_found">AI MODEL NOT FOUND</string>
+    <string name="toast_session_started">SESSION STARTED</string>
+    <string name="toast_model_ready">MODEL READY</string>
+    <string name="toast_copy_failed">COPY FAILED: %1$s</string>
+    <string name="toast_download_complete">DOWNLOAD COMPLETE</string>
+    <string name="toast_download_failed">DOWNLOAD FAILED: %1$s</string>
+
+    <!-- Buddies / Character generation -->
+    <string name="buddies_get_a_buddy">GET A BUDDY</string>
+    <string name="buddies_select_character">SELECT CHARACTER</string>
+    <string name="buddies_empty_hint">No character images.\nAdd PNG files under assets/characters/</string>
+    <string name="buddies_reroll">⬡  REROLL</string>
+    <string name="buddies_deploy">DEPLOY BUDDY</string>
+    <string name="buddies_active">ACTIVE BUDDIES</string>
+    <string name="buddies_empty_list">No buddies yet. Deploy one above!</string>
+    <string name="buddy_card_online">ONLINE</string>
+    <string name="buddy_card_switch">SWITCH</string>
+    <string name="buddy_card_delete">DELETE</string>
+    <string name="dialog_name_buddy_title">Name your buddy</string>
+    <string name="toast_deploy_done">%1$s deployed!</string>
+    <string name="toast_save_failed">Failed to save</string>
+    <string name="toast_switched">Switched buddy</string>
+    <string name="toast_deleted">Deleted %1$s</string>
+    <string name="dialog_delete_title">Delete %1$s</string>
+    <string name="dialog_delete_message">Delete this buddy? This cannot be undone.</string>
+    <string name="dialog_buddy_personality_title">%1$s\'s personality</string>
+    <string name="personality_set_active">Changed to %1$s (applied)</string>
+    <string name="personality_set_inactive">Set to %1$s (applies on switch)</string>
+    <string name="action_deploy">DEPLOY</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">DELETE</string>
+
+    <!-- History / Memory -->
+    <string name="history_title">Conversation History</string>
+    <string name="history_profile_label">CHARACTER PROFILE</string>
+    <string name="history_important">IMPORTANT MEMORIES</string>
+    <string name="history_last_30">LAST 30 DAYS</string>
+    <string name="history_today_logs">TODAY\'S LOGS</string>
+    <string name="history_wipe">WIPE MEMORY CORE</string>
+    <string name="history_no_memory">No memory yet. Launch your buddy to start observing.</string>
+    <string name="history_no_important">(No important memories yet)</string>
+    <string name="history_no_records">(No records)</string>
+    <string name="history_no_logs">(No observations today)</string>
+    <string name="dialog_reset_title">Reset memory</string>
+    <string name="dialog_reset_message">This erases all of your buddy\'s memory and cannot be undone. Continue?</string>
+    <string name="action_reset">Reset</string>
+    <string name="toast_memory_reset">Memory reset</string>
+
+    <!-- Settings -->
+    <string name="settings_title">System Settings</string>
+    <string name="settings_desc">Configure your GemmaBuddy interface and behavior.</string>
+    <string name="settings_speech_config">SPEECH CONFIGURATION</string>
+    <string name="settings_voice_velocity">VOICE VELOCITY</string>
+    <string name="settings_speed_slow">SLOW</string>
+    <string name="settings_speed_norm">NORM</string>
+    <string name="settings_speed_fast">FAST</string>
+    <string name="settings_autotalk">AUTO-TALK INTERVAL (SECS)</string>
+    <string name="settings_personality">PERSONALITY</string>
+    <string name="settings_buddy_char_type">BUDDY CHARACTER TYPE</string>
+    <string name="settings_change">Change</string>
+    <string name="settings_notif_access">NOTIFICATION ACCESS</string>
+    <string name="settings_notif_status_on">Notification access: ON ✓</string>
+    <string name="settings_notif_status_off">Notification access: OFF</string>
+    <string name="settings_notif_button">Set up notification access</string>
+    <string name="settings_vision">SCREEN VISION</string>
+    <string name="settings_vision_status_on">Screen vision: ON ✓</string>
+    <string name="settings_vision_status_off">Screen vision: OFF</string>
+    <string name="settings_vision_desc">When ON, your buddy occasionally looks at the screen and comments (optional; turn off anytime).</string>
+    <string name="settings_vision_enable">Enable screen vision</string>
+    <string name="settings_vision_disable">Disable screen vision</string>
+    <string name="settings_step_counter">STEP COUNTER</string>
+    <string name="settings_measurement_mode">MEASUREMENT MODE</string>
+    <string name="settings_step_buddy_only">BUDDY ONLY</string>
+    <string name="settings_step_always_on">ALWAYS ON</string>
+    <string name="settings_terminate">⊕ TERMINATE SESSION</string>
+    <string name="settings_wipe">⊗ WIPE MEMORY CORE</string>
+    <string name="settings_ui_language">APP LANGUAGE</string>
+    <string name="settings_ui_language_button">Change app language</string>
+    <string name="settings_buddy_language">BUDDY LANGUAGE</string>
+    <string name="settings_buddy_language_desc">The language your buddy speaks (independent from the app language).</string>
+    <string name="settings_buddy_language_button">Change buddy language</string>
+    <string name="lang_system">Follow system</string>
+    <string name="lang_ja">日本語</string>
+    <string name="lang_en">English</string>
+    <string name="dialog_ui_language_title">App language</string>
+    <string name="dialog_buddy_language_title">Buddy language</string>
+    <string name="toast_vision_enabled">Screen vision enabled</string>
+    <string name="toast_vision_disabled">Screen vision disabled</string>
+    <string name="toast_vision_canceled">Screen vision permission canceled</string>
+    <string name="toast_data_purged">DATA PURGED</string>
+    <string name="toast_step_always">Switched to always-on measurement</string>
+    <string name="toast_step_buddy">Switched to buddy-only measurement</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_buddies">Buddies</string>
+    <string name="nav_history">History</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Dialog input panel -->
+    <string name="dialog_input_hint">Reply...</string>
+    <string name="dialog_input_send">Send</string>
+
+    <!-- Battle -->
+    <string name="main_battle_button">⚔  BATTLE</string>
+    <string name="toast_need_buddy">Deploy a buddy first</string>
+    <string name="battle_hp">HP</string>
+    <string name="battle_attack">ATTACK</string>
+    <string name="battle_skill">SKILL</string>
+    <string name="battle_defend">DEFEND</string>
+    <string name="battle_log_start">%1$s appeared!</string>
+    <string name="battle_log_attack">%1$s attacks!</string>
+    <string name="battle_log_skill">%1$s uses a skill!</string>
+    <string name="battle_log_damage">%1$d damage</string>
+    <string name="battle_log_crit">Critical hit! %1$d damage</string>
+    <string name="battle_log_defend">%1$s braces to defend</string>
+    <string name="battle_log_defeated">%1$s is defeated!</string>
+    <string name="battle_result_win">Victory!</string>
+    <string name="battle_result_lose">Defeat...</string>
+    <string name="battle_rematch">Rematch</string>
+    <string name="battle_close">Close</string>
+
+    <!-- Widget -->
+    <string name="widget_steps">Today %1$d steps</string>
+    <string name="widget_steps_placeholder">Today 0 steps</string>
+    <string name="widget_default_comment">Tap to chat</string>
 </resources>

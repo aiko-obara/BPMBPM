@@ -53,4 +53,5 @@ dependencies {
     implementation(libs.gif.drawable)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.play.asset.delivery)
+    testImplementation("junit:junit:4.13.2")
 }

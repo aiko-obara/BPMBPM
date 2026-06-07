@@ -15,12 +15,12 @@
 
             <!-- Page heading -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="System Settings"
+                android:text="@string/settings_title"
                 android:fontFamily="@font/space_grotesk" android:textSize="28sp"
                 android:textStyle="bold" android:textColor="@color/nr_on_surface"
                 android:layout_marginBottom="4dp" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Configure your GemmaBuddy hardware interface and behavioral parameters."
+                android:text="@string/settings_desc"
                 android:fontFamily="@font/inter" android:textSize="14sp"
                 android:textColor="@color/nr_on_surface_variant"
                 android:layout_marginBottom="24dp" />
@@ -38,7 +38,7 @@
                         android:background="@color/nr_primary" android:layout_marginRight="8dp"
                         android:minHeight="20dp" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="SPEECH CONFIGURATION"
+                        android:text="@string/settings_speech_config"
                         android:fontFamily="@font/inter" android:textSize="12sp"
                         android:textStyle="bold" android:letterSpacing="0.08"
                         android:textColor="@color/nr_on_surface_variant" />
@@ -48,7 +48,7 @@
                     android:background="@color/nr_outline_variant" android:layout_marginBottom="16dp" />
 
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="VOICE VELOCITY"
+                    android:text="@string/settings_voice_velocity"
                     android:fontFamily="@font/inter" android:textSize="10sp"
                     android:textStyle="bold" android:letterSpacing="0.08"
                     android:textColor="@color/nr_on_surface_variant"
@@ -61,21 +61,21 @@
                     android:layout_marginBottom="20dp">
                     <Button android:id="@+id/btn_speed_slow"
                         android:layout_width="0dp" android:layout_height="match_parent"
-                        android:layout_weight="1" android:text="SLOW"
+                        android:layout_weight="1" android:text="@string/settings_speed_slow"
                         android:background="@drawable/bg_dark_segment_unselected"
                         android:textColor="@color/nr_on_surface_variant"
                         android:fontFamily="@font/inter" android:textSize="12sp"
                         android:textStyle="bold" android:letterSpacing="0.05" />
                     <Button android:id="@+id/btn_speed_normal"
                         android:layout_width="0dp" android:layout_height="match_parent"
-                        android:layout_weight="1" android:text="NORM"
+                        android:layout_weight="1" android:text="@string/settings_speed_norm"
                         android:background="@drawable/bg_dark_segment_selected"
                         android:textColor="@color/nr_primary"
                         android:fontFamily="@font/inter" android:textSize="12sp"
                         android:textStyle="bold" android:letterSpacing="0.05" />
                     <Button android:id="@+id/btn_speed_fast"
                         android:layout_width="0dp" android:layout_height="match_parent"
-                        android:layout_weight="1" android:text="FAST"
+                        android:layout_weight="1" android:text="@string/settings_speed_fast"
                         android:background="@drawable/bg_dark_segment_unselected"
                         android:textColor="@color/nr_on_surface_variant"
                         android:fontFamily="@font/inter" android:textSize="12sp"
@@ -83,7 +83,7 @@
                 </LinearLayout>
 
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="AUTO-TALK INTERVAL (SECS)"
+                    android:text="@string/settings_autotalk"
                     android:fontFamily="@font/inter" android:textSize="10sp"
                     android:textStyle="bold" android:letterSpacing="0.08"
                     android:textColor="@color/nr_on_surface_variant"
@@ -112,100 +112,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- PERSONALITY section -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="vertical" android:background="@drawable/bg_glass_card"
-                android:padding="20dp" android:elevation="2dp"
-                android:layout_marginBottom="16dp">
 
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:gravity="center_vertical"
-                    android:layout_marginBottom="4dp">
-                    <View android:layout_width="4dp" android:layout_height="match_parent"
-                        android:background="#FFCC00" android:layout_marginRight="8dp"
-                        android:minHeight="20dp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="PERSONALITY"
-                        android:fontFamily="@font/inter" android:textSize="12sp"
-                        android:textStyle="bold" android:letterSpacing="0.08"
-                        android:textColor="@color/nr_on_surface_variant" />
-                </LinearLayout>
-
-                <View android:layout_width="match_parent" android:layout_height="1dp"
-                    android:background="@color/nr_outline_variant" android:layout_marginBottom="16dp" />
-
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="BUDDY CHARACTER TYPE"
-                    android:fontFamily="@font/inter" android:textSize="10sp"
-                    android:textStyle="bold" android:letterSpacing="0.08"
-                    android:textColor="@color/nr_on_surface_variant"
-                    android:layout_marginBottom="8dp" />
-
-                <LinearLayout android:layout_width="match_parent" android:layout_height="52dp"
-                    android:orientation="horizontal" android:gravity="center_vertical">
-                    <TextView android:id="@+id/tv_personality_current"
-                        android:layout_width="0dp" android:layout_height="52dp"
-                        android:layout_weight="1"
-                        android:text="☀️ 陽気"
-                        android:fontFamily="@font/space_grotesk" android:textSize="18sp"
-                        android:textStyle="bold" android:textColor="@color/nr_on_surface"
-                        android:gravity="center_vertical"
-                        android:background="@drawable/bg_rounded_input"
-                        android:paddingLeft="12dp"
-                        android:layout_marginRight="8dp" />
-                    <Button android:id="@+id/btn_personality_change"
-                        android:layout_width="wrap_content" android:layout_height="52dp"
-                        android:text="変更"
-                        android:background="@drawable/bg_secondary_button"
-                        android:textColor="@color/nr_primary"
-                        android:fontFamily="@font/inter" android:textSize="12sp"
-                        android:textStyle="bold" android:paddingLeft="16dp" android:paddingRight="16dp" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- ACCOUNT PROFILE section -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="vertical" android:background="@drawable/bg_glass_card"
-                android:padding="20dp" android:elevation="2dp"
-                android:layout_marginBottom="24dp">
-
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:gravity="center_vertical"
-                    android:layout_marginBottom="4dp">
-                    <View android:layout_width="4dp" android:layout_height="match_parent"
-                        android:background="@color/nr_cyber_green" android:layout_marginRight="8dp"
-                        android:minHeight="20dp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="ACCOUNT PROFILE"
-                        android:fontFamily="@font/inter" android:textSize="12sp"
-                        android:textStyle="bold" android:letterSpacing="0.08"
-                        android:textColor="@color/nr_on_surface_variant" />
-                </LinearLayout>
-
-                <View android:layout_width="match_parent" android:layout_height="1dp"
-                    android:background="@color/nr_outline_variant" android:layout_marginBottom="16dp" />
-
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:gravity="center_vertical">
-                    <LinearLayout android:layout_width="64dp" android:layout_height="64dp"
-                        android:background="@drawable/bg_buddy_display"
-                        android:gravity="center" android:layout_marginRight="16dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="👤" android:textSize="28sp" />
-                    </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
-                        android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="Player_One"
-                            android:fontFamily="@font/space_grotesk" android:textSize="18sp"
-                            android:textStyle="bold" android:textColor="@color/nr_on_surface" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="ID: X7-992-B"
-                            android:fontFamily="@font/inter" android:textSize="12sp"
-                            android:textColor="@color/nr_on_surface_variant" />
-                    </LinearLayout>
-                </LinearLayout>
-            </LinearLayout>
 
             <!-- NOTIFICATION ACCESS section -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -220,7 +127,7 @@
                         android:background="@color/nr_cyber_green" android:layout_marginRight="8dp"
                         android:minHeight="20dp" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="NOTIFICATION ACCESS"
+                        android:text="@string/settings_notif_access"
                         android:fontFamily="@font/inter" android:textSize="12sp"
                         android:textStyle="bold" android:letterSpacing="0.08"
                         android:textColor="@color/nr_on_surface_variant" />
@@ -231,14 +138,134 @@
 
                 <TextView android:id="@+id/tv_notification_status"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="通知アクセス: 無効"
+                    android:text="@string/settings_notif_status_off"
                     android:fontFamily="@font/inter" android:textSize="13sp"
                     android:textColor="@color/nr_on_surface_variant"
                     android:layout_marginBottom="12dp" />
 
                 <Button android:id="@+id/btn_notification_access"
-                    android:layout_width="match_parent" android:layout_height="44dp"
-                    android:text="通知アクセスを設定する"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:text="@string/settings_notif_button"
+                    android:background="@drawable/bg_secondary_button"
+                    android:textColor="@color/nr_primary"
+                    android:fontFamily="@font/inter" android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- SCREEN VISION section -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_glass_card"
+                android:padding="20dp" android:elevation="2dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+                    <View android:layout_width="4dp" android:layout_height="match_parent"
+                        android:background="@color/nr_cyber_green" android:layout_marginRight="8dp"
+                        android:minHeight="20dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_vision"
+                        android:fontFamily="@font/inter" android:textSize="12sp"
+                        android:textStyle="bold" android:letterSpacing="0.08"
+                        android:textColor="@color/nr_on_surface_variant" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/nr_outline_variant" android:layout_marginBottom="12dp" />
+
+                <TextView android:id="@+id/tv_vision_status"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/settings_vision_status_off"
+                    android:fontFamily="@font/inter" android:textSize="13sp"
+                    android:textColor="@color/nr_on_surface_variant"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="@string/settings_vision_desc"
+                    android:fontFamily="@font/inter" android:textSize="11sp"
+                    android:textColor="@color/nr_on_surface_variant"
+                    android:layout_marginBottom="12dp" />
+
+                <Button android:id="@+id/btn_vision_toggle"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:text="@string/settings_vision_enable"
+                    android:background="@drawable/bg_secondary_button"
+                    android:textColor="@color/nr_primary"
+                    android:fontFamily="@font/inter" android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- LANGUAGE section -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/bg_glass_card"
+                android:padding="20dp" android:elevation="2dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+                    <View android:layout_width="4dp" android:layout_height="match_parent"
+                        android:background="@color/nr_accent_yellow" android:layout_marginRight="8dp"
+                        android:minHeight="20dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_ui_language"
+                        android:fontFamily="@font/inter" android:textSize="12sp"
+                        android:textStyle="bold" android:letterSpacing="0.08"
+                        android:textColor="@color/nr_on_surface_variant" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/nr_outline_variant" android:layout_marginBottom="12dp" />
+
+                <TextView android:id="@+id/tv_ui_language_current"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/lang_system"
+                    android:fontFamily="@font/inter" android:textSize="13sp"
+                    android:textColor="@color/nr_on_surface_variant"
+                    android:layout_marginBottom="12dp" />
+
+                <Button android:id="@+id/btn_ui_language"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:text="@string/settings_ui_language_button"
+                    android:background="@drawable/bg_secondary_button"
+                    android:textColor="@color/nr_primary"
+                    android:fontFamily="@font/inter" android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="16dp" />
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+                    <View android:layout_width="4dp" android:layout_height="match_parent"
+                        android:background="@color/nr_cyber_green" android:layout_marginRight="8dp"
+                        android:minHeight="20dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/settings_buddy_language"
+                        android:fontFamily="@font/inter" android:textSize="12sp"
+                        android:textStyle="bold" android:letterSpacing="0.08"
+                        android:textColor="@color/nr_on_surface_variant" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/nr_outline_variant" android:layout_marginBottom="12dp" />
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="@string/settings_buddy_language_desc"
+                    android:fontFamily="@font/inter" android:textSize="11sp"
+                    android:textColor="@color/nr_on_surface_variant"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView android:id="@+id/tv_buddy_language_current"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/lang_ja"
+                    android:fontFamily="@font/inter" android:textSize="13sp"
+                    android:textColor="@color/nr_on_surface_variant"
+                    android:layout_marginBottom="12dp" />
+
+                <Button android:id="@+id/btn_buddy_language"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:text="@string/settings_buddy_language_button"
                     android:background="@drawable/bg_secondary_button"
                     android:textColor="@color/nr_primary"
                     android:fontFamily="@font/inter" android:textSize="12sp"
@@ -258,7 +285,7 @@
                         android:background="@color/nr_primary" android:layout_marginRight="8dp"
                         android:minHeight="20dp" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="STEP COUNTER"
+                        android:text="@string/settings_step_counter"
                         android:fontFamily="@font/inter" android:textSize="12sp"
                         android:textStyle="bold" android:letterSpacing="0.08"
                         android:textColor="@color/nr_on_surface_variant" />
@@ -268,7 +295,7 @@
                     android:background="@color/nr_outline_variant" android:layout_marginBottom="16dp" />
 
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="MEASUREMENT MODE"
+                    android:text="@string/settings_measurement_mode"
                     android:fontFamily="@font/inter" android:textSize="10sp"
                     android:textStyle="bold" android:letterSpacing="0.08"
                     android:textColor="@color/nr_on_surface_variant"
@@ -280,14 +307,14 @@
                     android:layout_marginBottom="0dp">
                     <Button android:id="@+id/btn_step_mode_buddy"
                         android:layout_width="0dp" android:layout_height="match_parent"
-                        android:layout_weight="1" android:text="BUDDY ONLY"
+                        android:layout_weight="1" android:text="@string/settings_step_buddy_only"
                         android:background="@drawable/bg_dark_segment_selected"
                         android:textColor="@color/nr_primary"
                         android:fontFamily="@font/inter" android:textSize="11sp"
                         android:textStyle="bold" android:letterSpacing="0.04" />
                     <Button android:id="@+id/btn_step_mode_always"
                         android:layout_width="0dp" android:layout_height="match_parent"
-                        android:layout_weight="1" android:text="ALWAYS ON"
+                        android:layout_weight="1" android:text="@string/settings_step_always_on"
                         android:background="@drawable/bg_dark_segment_unselected"
                         android:textColor="@color/nr_on_surface_variant"
                         android:fontFamily="@font/inter" android:textSize="11sp"
@@ -297,7 +324,7 @@
 
             <!-- TERMINATE SESSION -->
             <Button android:layout_width="match_parent" android:layout_height="52dp"
-                android:text="⊕ TERMINATE SESSION"
+                android:text="@string/settings_terminate"
                 android:background="@drawable/bg_secondary_button"
                 android:textColor="@color/nr_primary"
                 android:fontFamily="@font/inter" android:textSize="12sp"
@@ -307,7 +334,7 @@
             <!-- WIPE MEMORY CORE -->
             <Button android:id="@+id/btn_purge_data"
                 android:layout_width="match_parent" android:layout_height="52dp"
-                android:text="⊗ WIPE MEMORY CORE"
+                android:text="@string/settings_wipe"
                 android:background="@drawable/bg_danger_button"
                 android:textColor="@color/nr_red"
                 android:fontFamily="@font/inter" android:textSize="12sp"

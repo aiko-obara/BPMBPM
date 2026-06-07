@@ -33,7 +33,7 @@
                             android:background="@color/nr_outline" android:layout_marginRight="4dp" />
                         <TextView android:id="@+id/tv_status_text"
                             android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="OFFLINE"
+                            android:text="@string/main_status_offline"
                             android:fontFamily="@font/inter" android:textSize="11sp"
                             android:letterSpacing="0.05" android:textColor="@color/nr_outline" />
                     </LinearLayout>
@@ -45,7 +45,7 @@
                     android:paddingLeft="12dp" android:paddingRight="12dp"
                     android:paddingTop="4dp" android:paddingBottom="4dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="READY"
+                        android:text="@string/main_chip_ready"
                         android:fontFamily="@font/inter" android:textSize="10sp"
                         android:textStyle="bold" android:letterSpacing="0.05"
                         android:textColor="@color/nr_primary" />
@@ -66,7 +66,7 @@
             <!-- START SESSION -->
             <Button android:id="@+id/btn_start"
                 android:layout_width="match_parent" android:layout_height="48dp"
-                android:text="▶  START SESSION"
+                android:text="@string/main_start_session"
                 android:background="@drawable/bg_primary_button"
                 android:textColor="@color/nr_on_primary"
                 android:fontFamily="@font/inter" android:textSize="13sp"
@@ -77,9 +77,19 @@
             <!-- TERMINATE SESSION -->
             <Button android:id="@+id/btn_stop"
                 android:layout_width="match_parent" android:layout_height="48dp"
-                android:text="□  TERMINATE SESSION"
+                android:text="@string/main_terminate_session"
                 android:background="@drawable/bg_secondary_button"
                 android:textColor="@color/nr_primary"
+                android:fontFamily="@font/inter" android:textSize="13sp"
+                android:textStyle="bold" android:letterSpacing="0.06"
+                android:layout_marginBottom="8dp" />
+
+            <!-- BATTLE -->
+            <Button android:id="@+id/btn_battle"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="@string/main_battle_button"
+                android:background="@drawable/bg_primary_button"
+                android:textColor="@color/nr_on_primary"
                 android:fontFamily="@font/inter" android:textSize="13sp"
                 android:textStyle="bold" android:letterSpacing="0.06"
                 android:layout_marginBottom="16dp" />
@@ -98,7 +108,7 @@
                         android:orientation="horizontal" android:gravity="center_vertical"
                         android:layout_marginBottom="4dp">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="⏱ SYSTEM UPTIME"
+                            android:text="@string/main_uptime_label"
                             android:fontFamily="@font/inter" android:textSize="10sp"
                             android:textStyle="bold" android:letterSpacing="0.06"
                             android:textColor="@color/nr_on_surface_variant" />
@@ -117,7 +127,7 @@
                     android:padding="16dp"
                     android:elevation="2dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="💬 INTERACTIONS"
+                        android:text="@string/main_interactions_label"
                         android:fontFamily="@font/inter" android:textSize="10sp"
                         android:textStyle="bold" android:letterSpacing="0.06"
                         android:textColor="@color/nr_on_surface_variant"
@@ -128,7 +138,7 @@
                         android:fontFamily="@font/space_grotesk" android:textSize="32sp"
                         android:textStyle="bold" android:textColor="@color/nr_on_surface" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="Total messages exchanged this cycle."
+                        android:text="@string/main_interactions_desc"
                         android:fontFamily="@font/inter" android:textSize="11sp"
                         android:textColor="@color/nr_on_surface_variant"
                         android:layout_marginTop="2dp" />
@@ -141,7 +151,7 @@
                 android:padding="16dp" android:layout_marginBottom="12dp"
                 android:orientation="vertical" android:elevation="2dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="👟 TODAY'S STEPS"
+                    android:text="@string/main_steps_label"
                     android:fontFamily="@font/inter" android:textSize="10sp"
                     android:textStyle="bold" android:letterSpacing="0.06"
                     android:textColor="@color/nr_on_surface_variant"
@@ -152,7 +162,7 @@
                     android:fontFamily="@font/space_grotesk" android:textSize="32sp"
                     android:textStyle="bold" android:textColor="@color/nr_on_surface" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Steps today"
+                    android:text="@string/main_steps_desc"
                     android:fontFamily="@font/inter" android:textSize="11sp"
                     android:textColor="@color/nr_on_surface_variant"
                     android:layout_marginTop="2dp" />
@@ -161,7 +171,7 @@
             <!-- Hidden setup buttons (shown only when needed) -->
             <Button android:id="@+id/btn_overlay_permission"
                 android:layout_width="match_parent" android:layout_height="48dp"
-                android:text="GRANT OVERLAY PERMISSION"
+                android:text="@string/main_grant_overlay"
                 android:background="@drawable/bg_secondary_button"
                 android:textColor="@color/nr_primary"
                 android:fontFamily="@font/inter" android:textSize="12sp"
@@ -170,7 +180,7 @@
 
             <Button android:id="@+id/btn_download_model"
                 android:layout_width="match_parent" android:layout_height="48dp"
-                android:text="DOWNLOAD AI MODEL"
+                android:text="@string/main_download_model"
                 android:background="@drawable/bg_secondary_button"
                 android:textColor="@color/nr_primary"
                 android:fontFamily="@font/inter" android:textSize="12sp"
@@ -179,7 +189,7 @@
 
             <Button android:id="@+id/btn_copy_model"
                 android:layout_width="match_parent" android:layout_height="48dp"
-                android:text="COPY MODEL TO INTERNAL"
+                android:text="@string/main_copy_model"
                 android:background="@drawable/bg_secondary_button"
                 android:textColor="@color/nr_primary"
                 android:fontFamily="@font/inter" android:textSize="12sp"

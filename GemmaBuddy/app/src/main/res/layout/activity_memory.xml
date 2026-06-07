@@ -18,26 +18,6 @@
             android:layout_weight="1" android:text="GemmaBuddy"
             android:textColor="@color/nr_cyan" android:fontFamily="@font/space_grotesk"
             android:textSize="20sp" android:textStyle="bold|italic" />
-        <LinearLayout android:layout_width="36dp" android:layout_height="36dp"
-            android:background="@drawable/bg_buddy_display" android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="👤" android:textSize="18sp" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Search bar -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:padding="16dp" android:background="@color/nr_dark_container_low">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
-            android:background="@drawable/bg_dark_card" android:orientation="horizontal"
-            android:gravity="center_vertical" android:paddingLeft="12dp" android:paddingRight="12dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="🔍" android:textSize="14sp" android:paddingRight="8dp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Search conversations..."
-                android:fontFamily="@font/inter" android:textSize="14sp"
-                android:textColor="@color/nr_dark_on_surface_variant" />
-        </LinearLayout>
     </LinearLayout>
 
     <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
@@ -50,9 +30,9 @@
                 android:orientation="horizontal" android:gravity="center_vertical"
                 android:layout_marginBottom="16dp">
                 <View android:layout_width="4dp" android:layout_height="32dp"
-                    android:background="#FFCC00" android:layout_marginRight="12dp" />
+                    android:background="@color/nr_accent_yellow" android:layout_marginRight="12dp" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Conversation History"
+                    android:text="@string/history_title"
                     android:fontFamily="@font/space_grotesk" android:textSize="24sp"
                     android:textStyle="bold" android:textColor="@color/nr_dark_on_surface" />
             </LinearLayout>
@@ -68,21 +48,21 @@
                     android:padding="16dp" android:layout_marginBottom="8dp"
                     android:elevation="4dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="CHARACTER PROFILE"
+                        android:text="@string/history_profile_label"
                         android:fontFamily="@font/inter" android:textSize="10sp"
                         android:textStyle="bold" android:letterSpacing="0.08"
                         android:textColor="@color/nr_cyan"
                         android:layout_marginBottom="8dp" />
                     <TextView android:id="@+id/tv_profile"
                         android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:text="No memory yet."
+                        android:text="@string/history_no_memory"
                         android:fontFamily="@font/inter" android:textSize="13sp"
                         android:textColor="@color/nr_dark_on_surface_variant" />
                 </LinearLayout>
 
                 <!-- 大切な思い出 -->
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="IMPORTANT MEMORIES"
+                    android:text="@string/history_important"
                     android:fontFamily="@font/inter" android:textSize="10sp"
                     android:textStyle="bold" android:letterSpacing="0.08"
                     android:textColor="@color/nr_cyan"
@@ -99,7 +79,7 @@
 
                 <!-- 過去30日間 -->
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="LAST 30 DAYS"
+                    android:text="@string/history_last_30"
                     android:fontFamily="@font/inter" android:textSize="10sp"
                     android:textStyle="bold" android:letterSpacing="0.08"
                     android:textColor="@color/nr_dark_on_surface_variant"
@@ -116,7 +96,7 @@
 
                 <!-- Recent events -->
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="TODAY'S LOGS"
+                    android:text="@string/history_today_logs"
                     android:fontFamily="@font/inter" android:textSize="10sp"
                     android:textStyle="bold" android:letterSpacing="0.08"
                     android:textColor="@color/nr_dark_on_surface_variant"
@@ -134,7 +114,7 @@
             <!-- Purge button -->
             <Button android:id="@+id/btn_reset"
                 android:layout_width="match_parent" android:layout_height="48dp"
-                android:text="WIPE MEMORY CORE"
+                android:text="@string/history_wipe"
                 android:background="@drawable/bg_danger_button"
                 android:textColor="@color/nr_red"
                 android:fontFamily="@font/inter" android:textSize="12sp"

@@ -1,14 +1,19 @@
 package com.example.gemmabuddy
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -33,14 +38,36 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var btnPlus: Button
     private lateinit var tvIntervalValue: TextView
     private lateinit var btnPurge: Button
-    private lateinit var tvPersonality: TextView
-    private lateinit var btnPersonality: Button
     private lateinit var tvNotificationStatus: TextView
     private lateinit var btnNotificationAccess: Button
     private lateinit var btnStepModeBuddy: Button
     private lateinit var btnStepModeAlways: Button
+    private lateinit var tvVisionStatus: TextView
+    private lateinit var btnVisionToggle: Button
+    private lateinit var tvUiLanguageCurrent: TextView
+    private lateinit var btnUiLanguage: Button
+    private lateinit var tvBuddyLanguageCurrent: TextView
+    private lateinit var btnBuddyLanguage: Button
 
     private var currentIntervalIdx = 3  // default 5m
+
+    private val projectionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val svc = Intent(this, OverlayService::class.java).apply {
+                action = OverlayService.ACTION_ENABLE_VISION
+                putExtra(OverlayService.EXTRA_PROJECTION_RESULT_CODE, result.resultCode)
+                putExtra(OverlayService.EXTRA_PROJECTION_DATA, result.data)
+            }
+            startService(svc)
+            updateVisionUI(true)
+            Toast.makeText(this, R.string.toast_vision_enabled, Toast.LENGTH_SHORT).show()
+        } else {
+            updateVisionUI(false)
+            Toast.makeText(this, R.string.toast_vision_canceled, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,12 +87,16 @@ class SettingsActivity : AppCompatActivity() {
         btnPlus = findViewById(R.id.btn_interval_plus)
         tvIntervalValue = findViewById(R.id.tv_interval_value)
         btnPurge = findViewById(R.id.btn_purge_data)
-        tvPersonality = findViewById(R.id.tv_personality_current)
-        btnPersonality = findViewById(R.id.btn_personality_change)
         tvNotificationStatus = findViewById(R.id.tv_notification_status)
         btnNotificationAccess = findViewById(R.id.btn_notification_access)
         btnStepModeBuddy = findViewById(R.id.btn_step_mode_buddy)
         btnStepModeAlways = findViewById(R.id.btn_step_mode_always)
+        tvVisionStatus = findViewById(R.id.tv_vision_status)
+        btnVisionToggle = findViewById(R.id.btn_vision_toggle)
+        tvUiLanguageCurrent = findViewById(R.id.tv_ui_language_current)
+        btnUiLanguage = findViewById(R.id.btn_ui_language)
+        tvBuddyLanguageCurrent = findViewById(R.id.tv_buddy_language_current)
+        btnBuddyLanguage = findViewById(R.id.btn_buddy_language)
     }
 
     private fun loadPrefs() {
@@ -78,15 +109,18 @@ class SettingsActivity : AppCompatActivity() {
         currentIntervalIdx = intervalSteps.indexOfFirst { it >= intervalMs }.coerceAtLeast(0)
         updateIntervalUI()
 
-        // Personality
-        updatePersonalityUI()
-
         // Notification access status
         updateNotificationStatusUI()
 
         // Step mode
         val stepMode = prefs.getString(OverlayService.PREF_STEP_MODE, "1") ?: "1"
         updateStepModeUI(stepMode)
+
+        // Vision
+        updateVisionUI(prefs.getBoolean(OverlayService.PREF_VISION_ENABLED, false))
+
+        // Languages
+        updateLanguageUI()
     }
 
     private fun setupListeners() {
@@ -110,13 +144,102 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         btnPurge.setOnClickListener { confirmPurge() }
-        btnPersonality.setOnClickListener { showPersonalityPicker() }
         btnNotificationAccess.setOnClickListener {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
 
         btnStepModeBuddy.setOnClickListener { saveStepMode("1") }
         btnStepModeAlways.setOnClickListener { saveStepMode("2") }
+
+        btnVisionToggle.setOnClickListener { toggleVision() }
+
+        btnUiLanguage.setOnClickListener { showUiLanguagePicker() }
+        btnBuddyLanguage.setOnClickListener { showBuddyLanguagePicker() }
+    }
+
+    // ─────────────────────────────────────────────
+    // 言語設定（UI言語 = per-app locale / Buddy会話言語 = pref）
+    // ─────────────────────────────────────────────
+
+    private fun updateLanguageUI() {
+        val locales = AppCompatDelegate.getApplicationLocales()
+        tvUiLanguageCurrent.text = when (locales.toLanguageTags().lowercase()) {
+            "" -> getString(R.string.lang_system)
+            "ja" -> getString(R.string.lang_ja)
+            "en" -> getString(R.string.lang_en)
+            else -> locales.toLanguageTags()
+        }
+        val buddyEn = BuddyLanguage.isEnglish(prefs)
+        tvBuddyLanguageCurrent.text = getString(if (buddyEn) R.string.lang_en else R.string.lang_ja)
+    }
+
+    private fun showUiLanguagePicker() {
+        // index 0=system, 1=ja, 2=en
+        val items = arrayOf(
+            getString(R.string.lang_system),
+            getString(R.string.lang_ja),
+            getString(R.string.lang_en)
+        )
+        val current = when (AppCompatDelegate.getApplicationLocales().toLanguageTags().lowercase()) {
+            "ja" -> 1
+            "en" -> 2
+            else -> 0
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.dialog_ui_language_title)
+            .setSingleChoiceItems(items, current) { dialog, which ->
+                val locales = when (which) {
+                    1 -> LocaleListCompat.forLanguageTags("ja")
+                    2 -> LocaleListCompat.forLanguageTags("en")
+                    else -> LocaleListCompat.getEmptyLocaleList()
+                }
+                AppCompatDelegate.setApplicationLocales(locales)
+                dialog.dismiss()
+                // setApplicationLocales が Activity を再生成して反映する
+            }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
+    }
+
+    private fun showBuddyLanguagePicker() {
+        // index 0=ja, 1=en
+        val items = arrayOf(getString(R.string.lang_ja), getString(R.string.lang_en))
+        val current = if (BuddyLanguage.isEnglish(prefs)) 1 else 0
+        AlertDialog.Builder(this)
+            .setTitle(R.string.dialog_buddy_language_title)
+            .setSingleChoiceItems(items, current) { dialog, which ->
+                prefs.edit().putString(BuddyLanguage.PREF_KEY, if (which == 1) "en" else "ja").apply()
+                updateLanguageUI()
+                // 稼働中サービスのシステムプロンプトを再構築させる
+                sendBroadcast(Intent(OverlayService.ACTION_RELOAD_PERSONALITY).apply {
+                    `package` = packageName
+                })
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
+    }
+
+    private fun toggleVision() {
+        val enabled = prefs.getBoolean(OverlayService.PREF_VISION_ENABLED, false)
+        if (enabled) {
+            startService(Intent(this, OverlayService::class.java).apply {
+                action = OverlayService.ACTION_DISABLE_VISION
+            })
+            updateVisionUI(false)
+            Toast.makeText(this, R.string.toast_vision_disabled, Toast.LENGTH_SHORT).show()
+        } else {
+            val mpm = getSystemService(MediaProjectionManager::class.java)
+            projectionLauncher.launch(mpm.createScreenCaptureIntent())
+        }
+    }
+
+    private fun updateVisionUI(enabled: Boolean) {
+        tvVisionStatus.text = getString(if (enabled) R.string.settings_vision_status_on else R.string.settings_vision_status_off)
+        tvVisionStatus.setTextColor(
+            if (enabled) getColor(R.color.nr_cyber_green) else getColor(R.color.nr_on_surface_variant)
+        )
+        btnVisionToggle.text = getString(if (enabled) R.string.settings_vision_disable else R.string.settings_vision_enable)
     }
 
     private fun saveSpeed(ms: Long) {
@@ -151,33 +274,6 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun updatePersonalityUI() {
-        val p = BuddyPersonality.load(prefs)
-        tvPersonality.text = "${p.emoji} ${p.name}"
-    }
-
-    private fun showPersonalityPicker() {
-        val items = BuddyPersonality.all.map { "${it.emoji} ${it.name}" }.toTypedArray()
-        val current = BuddyPersonality.load(prefs)
-        val currentIdx = BuddyPersonality.all.indexOfFirst { it.id == current.id }.coerceAtLeast(0)
-
-        AlertDialog.Builder(this)
-            .setTitle("性格を選択")
-            .setSingleChoiceItems(items, currentIdx) { dialog, which ->
-                val selected = BuddyPersonality.all[which]
-                prefs.edit().putString(BuddyPersonality.PREF_KEY, selected.id).apply()
-                updatePersonalityUI()
-                // サービスが起動中なら即時反映
-                sendBroadcast(Intent(OverlayService.ACTION_RELOAD_PERSONALITY).apply {
-                    `package` = packageName
-                })
-                Toast.makeText(this, "${selected.emoji} ${selected.name} に変更しました", Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-            }
-            .setNegativeButton("キャンセル", null)
-            .show()
-    }
-
     private fun saveStepMode(mode: String) {
         prefs.edit().putString(OverlayService.PREF_STEP_MODE, mode).apply()
         updateStepModeUI(mode)
@@ -188,7 +284,7 @@ class SettingsActivity : AppCompatActivity() {
         }
         Toast.makeText(
             this,
-            if (mode == "2") "常時計測に変更しました" else "バディ起動中のみに変更しました",
+            if (mode == "2") R.string.toast_step_always else R.string.toast_step_buddy,
             Toast.LENGTH_SHORT
         ).show()
     }
@@ -212,7 +308,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun updateNotificationStatusUI() {
         val enabled = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
             ?.contains(packageName) == true
-        tvNotificationStatus.text = if (enabled) "通知アクセス: 有効 ✓" else "通知アクセス: 無効"
+        tvNotificationStatus.text = getString(if (enabled) R.string.settings_notif_status_on else R.string.settings_notif_status_off)
         tvNotificationStatus.setTextColor(
             if (enabled) getColor(R.color.nr_cyber_green) else getColor(R.color.nr_on_surface_variant)
         )
@@ -220,13 +316,17 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun confirmPurge() {
         AlertDialog.Builder(this)
-            .setTitle("PURGE DATA")
-            .setMessage("全ての記憶データを消去します。この操作は元に戻せません。")
-            .setPositiveButton("PURGE") { _, _ ->
+            .setTitle(R.string.dialog_reset_title)
+            .setMessage(R.string.dialog_reset_message)
+            .setPositiveButton(R.string.action_reset) { _, _ ->
                 MemoryStore(this).reset()
-                Toast.makeText(this, "DATA PURGED", Toast.LENGTH_SHORT).show()
+                // 稼働中サービスの in-memory 記憶も破棄させる（書き戻し防止）
+                sendBroadcast(Intent(OverlayService.ACTION_RESET_MEMORY).apply {
+                    `package` = packageName
+                })
+                Toast.makeText(this, R.string.toast_data_purged, Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("CANCEL", null)
+            .setNegativeButton(R.string.action_cancel, null)
             .show()
     }
 }

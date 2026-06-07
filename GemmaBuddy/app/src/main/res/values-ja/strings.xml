@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GemmaBuddy</string>
+
+    <!-- Legacy preferences screen -->
+    <string name="pref_interval_title">画面監視の間隔</string>
+    <string name="pref_interval_summary">Gemma4が画面を確認する頻度</string>
+    <string name="pref_api_key_title">OpenAI API キー</string>
+    <string name="pref_api_key_summary">キャラクター生成に使用します</string>
+
+    <!-- Splash -->
+    <string name="splash_initializing">認知マトリクスを初期化中...</string>
+
+    <!-- Main / Home -->
+    <string name="main_status_offline">オフライン</string>
+    <string name="main_status_active">バディ稼働中</string>
+    <string name="main_chip_ready">準備OK</string>
+    <string name="main_start_session">▶  セッション開始</string>
+    <string name="main_terminate_session">□  セッション終了</string>
+    <string name="main_uptime_label">⏱ 稼働時間</string>
+    <string name="main_interactions_label">💬 やりとり</string>
+    <string name="main_interactions_desc">今サイクルのやりとり総数。</string>
+    <string name="main_steps_label">👟 今日の歩数</string>
+    <string name="main_steps_desc">今日の歩数</string>
+    <string name="main_grant_overlay">オーバーレイ権限を許可</string>
+    <string name="main_download_model">AIモデルをダウンロード</string>
+    <string name="main_copy_model">モデルを内部にコピー</string>
+    <string name="toast_overlay_required">オーバーレイ権限が必要です</string>
+    <string name="toast_model_not_found">AIモデルが見つかりません</string>
+    <string name="toast_session_started">セッションを開始しました</string>
+    <string name="toast_model_ready">モデル準備完了</string>
+    <string name="toast_copy_failed">コピー失敗: %1$s</string>
+    <string name="toast_download_complete">ダウンロード完了</string>
+    <string name="toast_download_failed">ダウンロード失敗: %1$s</string>
+
+    <!-- Buddies / Character generation -->
+    <string name="buddies_get_a_buddy">バディを入手</string>
+    <string name="buddies_select_character">キャラクターを選択</string>
+    <string name="buddies_empty_hint">キャラクター画像がありません\nassets/characters/ に PNG を追加してください</string>
+    <string name="buddies_reroll">⬡  リロール</string>
+    <string name="buddies_deploy">バディを配置</string>
+    <string name="buddies_active">配置中のバディ</string>
+    <string name="buddies_empty_list">まだバディがいません。上から配置してね！</string>
+    <string name="buddy_card_online">稼働中</string>
+    <string name="buddy_card_switch">切替</string>
+    <string name="buddy_card_delete">削除</string>
+    <string name="dialog_name_buddy_title">バディに名前をつける</string>
+    <string name="toast_deploy_done">%1$s をデプロイしました！</string>
+    <string name="toast_save_failed">保存に失敗しました</string>
+    <string name="toast_switched">バディを切り替えました</string>
+    <string name="toast_deleted">%1$s を削除しました</string>
+    <string name="dialog_delete_title">%1$s を削除</string>
+    <string name="dialog_delete_message">このバディを削除しますか？この操作は元に戻せません。</string>
+    <string name="dialog_buddy_personality_title">%1$s の性格</string>
+    <string name="personality_set_active">%1$s に変更しました（反映済み）</string>
+    <string name="personality_set_inactive">%1$s に設定しました（切替時に反映）</string>
+    <string name="action_deploy">デプロイ</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="action_delete">削除</string>
+
+    <!-- History / Memory -->
+    <string name="history_title">会話の履歴</string>
+    <string name="history_profile_label">キャラクター プロフィール</string>
+    <string name="history_important">大切な思い出</string>
+    <string name="history_last_30">過去30日間</string>
+    <string name="history_today_logs">今日のログ</string>
+    <string name="history_wipe">記憶をすべて消去</string>
+    <string name="history_no_memory">まだ記憶がありません。バディを起動すると観察が始まります。</string>
+    <string name="history_no_important">（大切な思い出はまだありません）</string>
+    <string name="history_no_records">（記録なし）</string>
+    <string name="history_no_logs">（本日の観察データなし）</string>
+    <string name="dialog_reset_title">記憶をリセット</string>
+    <string name="dialog_reset_message">バディの記憶を全て消去します。元には戻せません。よろしいですか？</string>
+    <string name="action_reset">リセット</string>
+    <string name="toast_memory_reset">記憶をリセットしました</string>
+
+    <!-- Settings -->
+    <string name="settings_title">設定</string>
+    <string name="settings_desc">GemmaBuddy の動作や表示を設定します。</string>
+    <string name="settings_speech_config">発話設定</string>
+    <string name="settings_voice_velocity">表示速度</string>
+    <string name="settings_speed_slow">おそい</string>
+    <string name="settings_speed_norm">ふつう</string>
+    <string name="settings_speed_fast">はやい</string>
+    <string name="settings_autotalk">自動発話の間隔（秒）</string>
+    <string name="settings_personality">性格</string>
+    <string name="settings_buddy_char_type">バディの性格</string>
+    <string name="settings_change">変更</string>
+    <string name="settings_notif_access">通知アクセス</string>
+    <string name="settings_notif_status_on">通知アクセス: 有効 ✓</string>
+    <string name="settings_notif_status_off">通知アクセス: 無効</string>
+    <string name="settings_notif_button">通知アクセスを設定する</string>
+    <string name="settings_vision">画面認識</string>
+    <string name="settings_vision_status_on">画面認識: 有効 ✓</string>
+    <string name="settings_vision_status_off">画面認識: 無効</string>
+    <string name="settings_vision_desc">ONにするとバディが時々画面を見て一言コメントします（任意・いつでもOFF可）</string>
+    <string name="settings_vision_enable">画面認識を有効にする</string>
+    <string name="settings_vision_disable">画面認識を無効にする</string>
+    <string name="settings_step_counter">歩数カウンター</string>
+    <string name="settings_measurement_mode">計測モード</string>
+    <string name="settings_step_buddy_only">起動中のみ</string>
+    <string name="settings_step_always_on">常時計測</string>
+    <string name="settings_terminate">⊕ セッション終了</string>
+    <string name="settings_wipe">⊗ 記憶を消去</string>
+    <string name="settings_ui_language">アプリの言語</string>
+    <string name="settings_ui_language_button">アプリの言語を変更</string>
+    <string name="settings_buddy_language">バディの会話言語</string>
+    <string name="settings_buddy_language_desc">バディが話す言語（アプリの言語とは独立しています）。</string>
+    <string name="settings_buddy_language_button">バディの会話言語を変更</string>
+    <string name="lang_system">端末に従う</string>
+    <string name="lang_ja">日本語</string>
+    <string name="lang_en">English</string>
+    <string name="dialog_ui_language_title">アプリの言語</string>
+    <string name="dialog_buddy_language_title">バディの会話言語</string>
+    <string name="toast_vision_enabled">画面認識を有効にしました</string>
+    <string name="toast_vision_disabled">画面認識を無効にしました</string>
+    <string name="toast_vision_canceled">画面認識の許可がキャンセルされました</string>
+    <string name="toast_data_purged">記憶を消去しました</string>
+    <string name="toast_step_always">常時計測に変更しました</string>
+    <string name="toast_step_buddy">バディ起動中のみに変更しました</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">ホーム</string>
+    <string name="nav_buddies">バディ</string>
+    <string name="nav_history">履歴</string>
+    <string name="nav_settings">設定</string>
+
+    <!-- Dialog input panel -->
+    <string name="dialog_input_hint">返事する...</string>
+    <string name="dialog_input_send">送信</string>
+
+    <!-- Battle -->
+    <string name="main_battle_button">⚔  バトル</string>
+    <string name="toast_need_buddy">先にバディを配置してね</string>
+    <string name="battle_hp">HP</string>
+    <string name="battle_attack">こうげき</string>
+    <string name="battle_skill">スキル</string>
+    <string name="battle_defend">ぼうぎょ</string>
+    <string name="battle_log_start">%1$s が あらわれた！</string>
+    <string name="battle_log_attack">%1$s の こうげき！</string>
+    <string name="battle_log_skill">%1$s の スキル！</string>
+    <string name="battle_log_damage">%1$d ダメージ</string>
+    <string name="battle_log_crit">クリティカル！ %1$d ダメージ</string>
+    <string name="battle_log_defend">%1$s は 防御の構え</string>
+    <string name="battle_log_defeated">%1$s は たおれた！</string>
+    <string name="battle_result_win">勝利！</string>
+    <string name="battle_result_lose">敗北...</string>
+    <string name="battle_rematch">もう一度</string>
+    <string name="battle_close">閉じる</string>
+
+    <!-- Widget -->
+    <string name="widget_steps">今日 %1$d 歩</string>
+    <string name="widget_steps_placeholder">今日 0 歩</string>
+    <string name="widget_default_comment">タップして話しかけてね</string>
+</resources>

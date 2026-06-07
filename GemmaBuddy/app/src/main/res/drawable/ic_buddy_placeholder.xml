@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 8bit 風のバディ汎用プレースホルダ（バディ未設定時に表示） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="16"
+    android:viewportHeight="16">
+    <!-- head/body block -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M4,3 H12 V13 H4 Z" />
+    <!-- outline accents -->
+    <path
+        android:fillColor="#1B5E20"
+        android:pathData="M4,3 H12 V4 H4 Z M4,12 H12 V13 H4 Z M4,3 H5 V13 H4 Z M11,3 H12 V13 H11 Z" />
+    <!-- eyes -->
+    <path
+        android:fillColor="#1B5E20"
+        android:pathData="M6,6 H7 V8 H6 Z M9,6 H10 V8 H9 Z" />
+    <!-- mouth -->
+    <path
+        android:fillColor="#1B5E20"
+        android:pathData="M6,10 H10 V11 H6 Z" />
+</vector>
